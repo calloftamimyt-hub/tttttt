@@ -646,42 +646,45 @@ fun ProfileScreen(
                             title = "Support WhatsApp",
                             icon = Icons.Filled.Chat,
                             iconColor = Color(0xFF25D366),
-                            onClick = { openUrl("https://wa.me/") }
+                            onClick = { 
+                                val message = "আসসালামু আলাইকুম, ইসলামিক অ্যাসিস্ট্যান্ট অ্যাপ থেকে যোগাযোগ করছি। আমার একটি সাহায্য প্রয়োজন।"
+                                openUrl("https://wa.me/8801909902319?text=${android.net.Uri.encode(message)}") 
+                            }
                         )
                         ProfileDivider()
                         ProfileOptionRow(
                             title = "Support Telegram",
                             icon = Icons.Filled.Send,
                             iconColor = Color(0xFF0088CC),
-                            onClick = { openUrl("https://t.me/") }
+                            onClick = { openUrl("https://t.me/calloftamim") }
                         )
                         ProfileDivider()
                         ProfileOptionRow(
                             title = "Facebook Group",
                             icon = Icons.Filled.Groups,
                             iconColor = Color(0xFF1877F2),
-                            onClick = { openUrl("https://facebook.com/groups/") }
+                            onClick = { openUrl("https://www.facebook.com/share/g/184FQ3v2Rq/") }
                         )
                         ProfileDivider()
                         ProfileOptionRow(
-                            title = "WhatsApp Group",
-                            icon = Icons.Filled.Group,
+                            title = "WhatsApp Channel",
+                            icon = Icons.Filled.Campaign,
                             iconColor = Color(0xFF25D366),
-                            onClick = { openUrl("https://chat.whatsapp.com/") }
+                            onClick = { openUrl("https://whatsapp.com/channel/0029Vb6cwrFCBtxJKy95Xh0S") }
                         )
                         ProfileDivider()
                         ProfileOptionRow(
                             title = "Telegram Group",
                             icon = Icons.Filled.Forum,
                             iconColor = Color(0xFF0088CC),
-                            onClick = { openUrl("https://t.me/") }
+                            onClick = { openUrl("https://t.me/halalcirclesupport") }
                         )
                         ProfileDivider()
                         ProfileOptionRow(
                             title = "Telegram Channel",
                             icon = Icons.Filled.Campaign,
                             iconColor = Color(0xFF0088CC),
-                            onClick = { openUrl("https://t.me/") }
+                            onClick = { openUrl("https://t.me/halalcircle") }
                         )
                     }
                 }
