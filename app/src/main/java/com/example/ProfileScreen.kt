@@ -143,7 +143,13 @@ fun ProfileScreen(
     var showScreenTimeFullScreen by remember { mutableStateOf(false) }
     var showAutoSilentFullScreen by remember { mutableStateOf(false) }
 
-    val isAnySubScreenOpen = showLoginScreen || showRegisterScreen || showEditFullScreen || showTrackerHistoryFullScreen || showSocialMediaBlockerFullScreen || showWebsiteBlockerFullScreen || showScreenTimeFullScreen || showAutoSilentFullScreen
+    var showPrivacyPolicy by remember { mutableStateOf(false) }
+    var showTerms by remember { mutableStateOf(false) }
+    var showDisclaimer by remember { mutableStateOf(false) }
+    var showAbout by remember { mutableStateOf(false) }
+    var showContactUs by remember { mutableStateOf(false) }
+
+    val isAnySubScreenOpen = showLoginScreen || showRegisterScreen || showEditFullScreen || showTrackerHistoryFullScreen || showSocialMediaBlockerFullScreen || showWebsiteBlockerFullScreen || showScreenTimeFullScreen || showAutoSilentFullScreen || showPrivacyPolicy || showTerms || showDisclaimer || showAbout || showContactUs
     
     LaunchedEffect(isAnySubScreenOpen) {
         onToggleBottomBar(!isAnySubScreenOpen)
@@ -306,6 +312,16 @@ fun ProfileScreen(
                 prayerViewModel = androidx.lifecycle.viewmodel.compose.viewModel<com.example.viewmodel.PrayerViewModel>(),
                 onBack = { showAutoSilentFullScreen = false }
             )
+        } else if (showPrivacyPolicy) {
+            PrivacyPolicyScreen(onBack = { showPrivacyPolicy = false })
+        } else if (showTerms) {
+            TermsConditionsScreen(onBack = { showTerms = false })
+        } else if (showDisclaimer) {
+            DisclaimerScreen(onBack = { showDisclaimer = false })
+        } else if (showAbout) {
+            AboutAppScreen(onBack = { showAbout = false })
+        } else if (showContactUs) {
+            ContactUsScreen(onBack = { showContactUs = false })
         } else {
             // Main Profile UI Display
             Column(
@@ -666,6 +682,63 @@ fun ProfileScreen(
                             icon = Icons.Filled.Campaign,
                             iconColor = Color(0xFF0088CC),
                             onClick = { openUrl("https://t.me/") }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Legal Card
+                Text(
+                    text = if (GlobalLanguage.isEnglish) "Legal" else "লিগ্যাল",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    color = TextDark,
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+                )
+
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                ) {
+                    Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                        ProfileOptionRow(
+                            title = "Privacy Policy",
+                            icon = Icons.Filled.PrivacyTip,
+                            iconColor = Color(0xFF6366F1),
+                            onClick = { showPrivacyPolicy = true }
+                        )
+                        ProfileDivider()
+                        ProfileOptionRow(
+                            title = "Terms & Conditions",
+                            icon = Icons.Filled.Description,
+                            iconColor = Color(0xFF8B5CF6),
+                            onClick = { showTerms = true }
+                        )
+                        ProfileDivider()
+                        ProfileOptionRow(
+                            title = "Disclaimer",
+                            icon = Icons.Filled.Gavel,
+                            iconColor = Color(0xFFF59E0B),
+                            onClick = { showDisclaimer = true }
+                        )
+                        ProfileDivider()
+                        ProfileOptionRow(
+                            title = "About App",
+                            icon = Icons.Filled.Info,
+                            iconColor = Color(0xFF3B82F6),
+                            onClick = { showAbout = true }
+                        )
+                        ProfileDivider()
+                        ProfileOptionRow(
+                            title = "Contact Us",
+                            icon = Icons.Filled.ContactSupport,
+                            iconColor = Color(0xFF14B8A6),
+                            onClick = { showContactUs = true }
                         )
                     }
                 }
