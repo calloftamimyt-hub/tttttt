@@ -13,7 +13,7 @@ plugins {
 
 android {
   namespace = "com.example"
-  compileSdk = 36
+  compileSdk = 35
 
   // Decode the debug keystore from base64 if it does not exist
   val keystoreFile = file("${rootDir}/debug.keystore")
