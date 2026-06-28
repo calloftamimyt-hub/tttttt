@@ -850,14 +850,16 @@ fun HomeScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 4.dp),
+                .padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
             // Header Title
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.clickable { onNavigateToLocation() }
+                modifier = Modifier
+                    .clickable { onNavigateToLocation() }
+                    .padding(top = 10.dp)
             ) {
                 Text(
                     text = "Halal Circle",
@@ -867,64 +869,98 @@ fun HomeScreen(
                 )
             }
             
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onOpenAlarmPage) {
-                    Icon(
-                        imageVector = Icons.Outlined.AccessAlarm, 
-                        contentDescription = "Alarms", 
-                        tint = TextDark,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-                
-                IconButton(onClick = onOpenFoundationPage) {
-                    Icon(
-                        imageVector = Icons.Outlined.VolunteerActivism, 
-                        contentDescription = "Foundation", 
-                        tint = PrimaryGreen,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-                
-                Box {
-                    val context = LocalContext.current
-                    val unreadCount by remember {
-                        com.example.database.TrackerDatabase.getDatabase(context).notificationDao().getUnreadCount()
-                    }.collectAsState(initial = 0)
-
-                    IconButton(
-                        onClick = onOpenNotificationsPage
-                    ) {
+            Column(horizontalAlignment = Alignment.End) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onOpenAlarmPage) {
                         Icon(
-                            imageVector = Icons.Outlined.Notifications, 
-                            contentDescription = "Notifications", 
+                            imageVector = Icons.Outlined.AccessAlarm, 
+                            contentDescription = "Alarms", 
                             tint = TextDark,
                             modifier = Modifier.size(24.dp)
                         )
                     }
                     
-                    if (unreadCount > 0) {
-                        val displayCount = if (unreadCount > 99) (if (GlobalLanguage.isEnglish) "99+" else "৯৯+") else if (GlobalLanguage.isEnglish) unreadCount.toString() else unreadCount.toBengaliDigits()
-                        val badgeSize = if (unreadCount > 9) 20.dp else 18.dp
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .offset(x = (-6).dp, y = 6.dp)
-                                .defaultMinSize(minWidth = badgeSize, minHeight = badgeSize)
-                                .background(Color.Red, CircleShape)
-                                .padding(horizontal = 4.dp),
-                            contentAlignment = Alignment.Center
+                    IconButton(onClick = onOpenFoundationPage) {
+                        Icon(
+                            imageVector = Icons.Outlined.VolunteerActivism, 
+                            contentDescription = "Foundation", 
+                            tint = PrimaryGreen,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                    
+                    Box {
+                        val context = LocalContext.current
+                        val unreadCount by remember {
+                            com.example.database.TrackerDatabase.getDatabase(context).notificationDao().getUnreadCount()
+                        }.collectAsState(initial = 0)
+    
+                        IconButton(
+                            onClick = onOpenNotificationsPage
                         ) {
-                            Text(
-                                text = displayCount,
-                                color = Color.White,
-                                fontSize = if (unreadCount > 9) 9.sp else 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 1
+                            Icon(
+                                imageVector = Icons.Outlined.Notifications, 
+                                contentDescription = "Notifications", 
+                                tint = TextDark,
+                                modifier = Modifier.size(24.dp)
                             )
+                        }
+                        
+                        if (unreadCount > 0) {
+                            val displayCount = if (unreadCount > 99) (if (GlobalLanguage.isEnglish) "99+" else "৯৯+") else if (GlobalLanguage.isEnglish) unreadCount.toString() else unreadCount.toBengaliDigits()
+                            val badgeSize = if (unreadCount > 9) 20.dp else 18.dp
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .offset(x = (-6).dp, y = 6.dp)
+                                    .defaultMinSize(minWidth = badgeSize, minHeight = badgeSize)
+                                    .background(Color.Red, CircleShape)
+                                    .padding(horizontal = 4.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = displayCount,
+                                    color = Color.White,
+                                    fontSize = if (unreadCount > 9) 9.sp else 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1
+                                )
+                            }
                         }
                     }
                 }
+
+                // Dates Below Icons
+                val cal = java.util.Calendar.getInstance()
+                val year = cal.get(java.util.Calendar.YEAR)
+                val month = cal.get(java.util.Calendar.MONTH)
+                val day = cal.get(java.util.Calendar.DAY_OF_MONTH)
+                val isEng = GlobalLanguage.isEnglish
+                
+                val gregDayStr = if (isEng) day.toString() else com.example.HijriCalendarHelper.toBengaliNumber(day)
+                val gregMonthStr = if (isEng) com.example.HijriCalendarHelper.enGregorianMonths[month] else com.example.HijriCalendarHelper.bnGregorianMonths[month]
+                val gregYearStr = if (isEng) year.toString() else com.example.HijriCalendarHelper.toBengaliNumber(year)
+                val gregorianDate = "$gregDayStr $gregMonthStr $gregYearStr"
+                
+                val hDate = com.example.HijriCalendarHelper.gregorianToHijri(year, month + 1, day)
+                val hijriDayStr = if(isEng) hDate.day.toString() else com.example.HijriCalendarHelper.toBengaliNumber(hDate.day)
+                val hijriMonthStr = if(isEng) com.example.HijriCalendarHelper.enHijriMonths[hDate.month - 1] else com.example.HijriCalendarHelper.bnHijriMonths[hDate.month - 1]
+                val hijriYearStr = if(isEng) hDate.year.toString() else com.example.HijriCalendarHelper.toBengaliNumber(hDate.year)
+                val hijriDate = if(isEng) "$hijriDayStr $hijriMonthStr, $hijriYearStr AH" else "$hijriDayStr $hijriMonthStr, $hijriYearStr হিজরি"
+
+                Text(
+                    text = hijriDate,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = PrimaryGreen,
+                    modifier = Modifier.padding(end = 12.dp)
+                )
+                Text(
+                    text = gregorianDate,
+                    fontSize = 11.sp,
+                    color = TextGray,
+                    modifier = Modifier.padding(end = 12.dp, bottom = 4.dp)
+                )
             }
         }
 
