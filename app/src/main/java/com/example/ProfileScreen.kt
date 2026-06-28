@@ -594,10 +594,103 @@ fun ProfileScreen(
                             iconColor = Color(0xFF4B5563),
                             onClick = onNavigateToSettings
                         )
+                    }
+                }
 
-                        // If logged in, show logout and delete account
-                        if (currentUser != null) {
-                            ProfileDivider()
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Support Card
+                Text(
+                    text = if (GlobalLanguage.isEnglish) "Support" else "সাপোর্ট",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    color = TextDark,
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+                )
+
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                ) {
+                    val openUrl: (String) -> Unit = { url ->
+                        try {
+                            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "Could not open link", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+
+                    Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                        ProfileOptionRow(
+                            title = "Support WhatsApp",
+                            icon = Icons.Filled.Chat,
+                            iconColor = Color(0xFF25D366),
+                            onClick = { openUrl("https://wa.me/") }
+                        )
+                        ProfileDivider()
+                        ProfileOptionRow(
+                            title = "Support Telegram",
+                            icon = Icons.Filled.Send,
+                            iconColor = Color(0xFF0088CC),
+                            onClick = { openUrl("https://t.me/") }
+                        )
+                        ProfileDivider()
+                        ProfileOptionRow(
+                            title = "Facebook Group",
+                            icon = Icons.Filled.Groups,
+                            iconColor = Color(0xFF1877F2),
+                            onClick = { openUrl("https://facebook.com/groups/") }
+                        )
+                        ProfileDivider()
+                        ProfileOptionRow(
+                            title = "WhatsApp Group",
+                            icon = Icons.Filled.Group,
+                            iconColor = Color(0xFF25D366),
+                            onClick = { openUrl("https://chat.whatsapp.com/") }
+                        )
+                        ProfileDivider()
+                        ProfileOptionRow(
+                            title = "Telegram Group",
+                            icon = Icons.Filled.Forum,
+                            iconColor = Color(0xFF0088CC),
+                            onClick = { openUrl("https://t.me/") }
+                        )
+                        ProfileDivider()
+                        ProfileOptionRow(
+                            title = "Telegram Channel",
+                            icon = Icons.Filled.Campaign,
+                            iconColor = Color(0xFF0088CC),
+                            onClick = { openUrl("https://t.me/") }
+                        )
+                    }
+                }
+
+                // If logged in, show logout and delete account
+                if (currentUser != null) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    
+                    Text(
+                        text = if (GlobalLanguage.isEnglish) "Account" else "অ্যাকাউন্ট",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        color = TextDark,
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+                    )
+
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 6.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(vertical = 4.dp)) {
                             ProfileOptionRow(
                                 title = if (GlobalLanguage.isEnglish) "Sign Out" else "লগআউট করুন",
                                 icon = Icons.Filled.Logout,
@@ -610,8 +703,18 @@ fun ProfileScreen(
                                     }
                                 }
                             )
-
-                            ProfileDivider()
+                        }
+                    }
+                    
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 6.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(vertical = 4.dp)) {
                             ProfileOptionRow(
                                 title = if (GlobalLanguage.isEnglish) "Delete Account" else "অ্যাকাউন্ট মুছে ফেলুন",
                                 icon = Icons.Filled.Delete,
