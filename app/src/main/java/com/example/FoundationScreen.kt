@@ -81,9 +81,8 @@ fun FoundationScreen(onBack: () -> Unit) {
     val categories = if (isEnglish) categoriesEn else categoriesBn
 
     // Dynamic Payment Numbers with local caching in shared preferences
-    var bkashNum by remember { mutableStateOf(prefs.getString("cached_bkash_num", "01782050201") ?: "01782050201") }
-    var nagadNum by remember { mutableStateOf(prefs.getString("cached_nagad_num", "01944112211") ?: "01944112211") }
-    var rocketNum by remember { mutableStateOf(prefs.getString("cached_rocket_num", "01511223344") ?: "01511223344") }
+    var bkashNum by remember { mutableStateOf(prefs.getString("cached_bkash_num", "01909902319") ?: "01909902319") }
+    var nagadNum by remember { mutableStateOf(prefs.getString("cached_nagad_num", "01623673650") ?: "01623673650") }
 
     // Preset Amounts
     val presetAmounts = listOf(100, 500, 1000, 5000)
@@ -91,8 +90,7 @@ fun FoundationScreen(onBack: () -> Unit) {
     // Payment Methods
     val paymentMethods = listOf(
         PaymentMethod("bKash Merchant", bkashNum, Color(0xFFE2125F)),
-        PaymentMethod("Nagad Merchant", nagadNum, Color(0xFFF15922)),
-        PaymentMethod("Rocket Personal", rocketNum, Color(0xFF8C3494))
+        PaymentMethod("Nagad Merchant", nagadNum, Color(0xFFF15922))
     )
 
     // Entrance Animation State
@@ -116,10 +114,6 @@ fun FoundationScreen(onBack: () -> Unit) {
                 nagadNum = nagad
                 prefs.edit().putString("cached_nagad_num", nagad).apply()
             }
-            if (rocket.isNotEmpty()) {
-                rocketNum = rocket
-                prefs.edit().putString("cached_rocket_num", rocket).apply()
-            }
             prefs.edit().apply {
                 putString("cached_tg_token", tgToken)
                 putString("cached_user_chat_id", userChat)
@@ -141,7 +135,7 @@ fun FoundationScreen(onBack: () -> Unit) {
                         text = if (isEnglish) "Halal Circle Foundation" else "হালাল সার্কেল ফাউন্ডেশন",
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
-                        color = Color.White
+                        color = TextDark
                     )
                 },
                 navigationIcon = {
@@ -149,12 +143,12 @@ fun FoundationScreen(onBack: () -> Unit) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color.White
+                            tint = TextDark
                         )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = PrimaryGreen
+                    containerColor = Color.White
                 )
             )
         },
@@ -297,164 +291,6 @@ fun FoundationScreen(onBack: () -> Unit) {
                         color = Color(0xFF555F6D),
                         lineHeight = 19.sp
                     )
-                }
-            }
-
-            // 2.2. Dynamic Campaign Goal Progress Bar Card (Premium & Interactive)
-            val campaignTarget = 500000
-            val baseRaised = 324500
-            val currentRaised = baseRaised + totalDonatedAmount
-            val progressFraction = (currentRaised.toFloat() / campaignTarget.toFloat()).coerceIn(0f, 12f)
-            val progressPercentText = ((currentRaised.toFloat() / campaignTarget.toFloat()) * 100).toInt()
-            val baseDonors = 312
-            val userDonationsCount = if (donationListString.isEmpty()) 0 else donationListString.split("#").size
-            val totalDonors = baseDonors + userDonationsCount
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 6.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                border = BorderStroke(1.dp, Color(0xFFECEFF1)),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(PrimaryGreen.copy(alpha = 0.08f))
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                        ) {
-                            Text(
-                                text = if (isEnglish) "ACTIVE CAMPAIGN" else "চলতি কার্যক্রম",
-                                color = PrimaryGreen,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                style = androidx.compose.ui.text.TextStyle(letterSpacing = 1.sp)
-                            )
-                        }
-                        
-                        Text(
-                            text = "${if (isEnglish) progressPercentText.toString() else progressPercentText.toString().toBengali()}%",
-                            color = PrimaryGreen,
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 14.sp
-                        )
-                    }
-                    
-                    Spacer(modifier = Modifier.height(10.dp))
-                    
-                    Text(
-                        text = if (isEnglish) {
-                            "Emergency Flood & Disaster Rehabilitation Fund"
-                        } else {
-                            "জরুরি বন্যা ও প্রাকৃতিক দুর্যোগ পুনর্বাসন তহবিল"
-                        },
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
-                        color = TextDark
-                    )
-                    
-                    Spacer(modifier = Modifier.height(12.dp))
-                    
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = if (isEnglish) "Raised So Far" else "সংগৃহীত হয়েছে",
-                                fontSize = 11.sp,
-                                color = TextGray
-                            )
-                            Text(
-                                text = "৳" + if (isEnglish) {
-                                    String.format("%,d", currentRaised)
-                                } else {
-                                    currentRaised.toString().toBengali()
-                                },
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = PrimaryGreen
-                            )
-                        }
-                        
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text(
-                                text = if (isEnglish) "Campaign Goal" else "তহবিলের লক্ষ্য",
-                                fontSize = 11.sp,
-                                color = TextGray
-                            )
-                            Text(
-                                text = "৳" + if (isEnglish) {
-                                    "5,00,000"
-                                } else {
-                                    "৫,০০,০০০"
-                                },
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = TextDark
-                            )
-                        }
-                    }
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(1.dp)
-                            .background(Color(0xFFF3F4F6))
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Outlined.People,
-                                contentDescription = null,
-                                tint = TextGray,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = if (isEnglish) {
-                                    "$totalDonors supporters donated"
-                                } else {
-                                    "${totalDonors.toString().toBengali()} জন দান করেছেন"
-                                },
-                                fontSize = 11.sp,
-                                color = TextGray
-                            )
-                        }
-                        
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(6.dp)
-                                    .background(PrimaryGreen, CircleShape)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = if (isEnglish) "Active" else "সক্রিয়",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = TextGray
-                            )
-                        }
-                    }
                 }
             }
 
@@ -758,16 +594,17 @@ fun FoundationScreen(onBack: () -> Unit) {
 
         // Premium Quality Donation Modal
         if (showDonationModal) {
-            Dialog(onDismissRequest = { showDonationModal = false }) {
+            Dialog(
+                onDismissRequest = { showDonationModal = false },
+                properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+            ) {
                 Card(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp)
-                        .heightIn(max = 580.dp),
-                    shape = RoundedCornerShape(24.dp),
+                        .fillMaxSize(),
+                    shape = RoundedCornerShape(0.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
-                    border = BorderStroke(1.dp, Color(0xFFECEFF1)),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
+                    border = null,
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
                     Column(
                         modifier = Modifier
