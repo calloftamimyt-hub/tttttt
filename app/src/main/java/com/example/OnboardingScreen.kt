@@ -164,25 +164,28 @@ fun WelcomeStep(settingsViewModel: com.example.viewmodel.SettingsViewModel, onLo
         
         // Buttons at the bottom
         Column(modifier = Modifier.fillMaxWidth()) {
-            Button(
-                onClick = onLogin,
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text("লগইন", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            OutlinedButton(
-                onClick = onSignUp,
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                border = BorderStroke(2.dp, PrimaryGreen)
-            ) {
-                Text("সাইন আপ", fontSize = 18.sp, color = PrimaryGreen, fontWeight = FontWeight.Bold)
+                Button(
+                    onClick = onLogin,
+                    modifier = Modifier.weight(1f).height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                ) {
+                    Text("লগইন", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+                
+                OutlinedButton(
+                    onClick = onSignUp,
+                    modifier = Modifier.weight(1f).height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(2.dp, PrimaryGreen)
+                ) {
+                    Text("সাইন আপ", fontSize = 18.sp, color = PrimaryGreen, fontWeight = FontWeight.Bold)
+                }
             }
             
             Spacer(modifier = Modifier.height(24.dp))
@@ -232,8 +235,7 @@ fun LanguageStep(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp)
-            .padding(bottom = 8.dp),
+            .padding(top = 24.dp, bottom = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(16.dp))
@@ -243,14 +245,16 @@ fun LanguageStep(
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = TextDark,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 16.dp)
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = subtitleText,
             fontSize = 14.sp,
             color = TextGray,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 16.dp)
         )
         
         Spacer(modifier = Modifier.height(16.dp))
@@ -261,6 +265,7 @@ fun LanguageStep(
             onValueChange = { searchQuery = it },
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(horizontal = 16.dp)
                 .padding(bottom = 12.dp),
             placeholder = { Text(searchPlaceholder, color = TextGray.copy(alpha = 0.7f), fontSize = 15.sp) },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = PrimaryGreen) },
@@ -286,7 +291,6 @@ fun LanguageStep(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
             items(filteredCountries) { country ->
@@ -326,6 +330,7 @@ fun LanguageStep(
             onClick = onNext,
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(horizontal = 16.dp)
                 .height(54.dp),
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
@@ -351,50 +356,52 @@ fun CountryLanguageOption(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        shape = RoundedCornerShape(14.dp),
+        shape = androidx.compose.ui.graphics.RectangleShape,
         color = if (isSelected) PrimaryGreen.copy(alpha = 0.08f) else Color.White,
-        border = if (isSelected) BorderStroke(1.5.dp, PrimaryGreen) else BorderStroke(1.dp, Color(0xFFE5E7EB)),
-        shadowElevation = if (isSelected) 0.dp else 1.dp
+        shadowElevation = 0.dp
     ) {
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
+        Column {
             Row(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Flag display
-                Text(
-                    text = country.flag,
-                    fontSize = 28.sp,
-                    modifier = Modifier.padding(end = 12.dp)
-                )
-                
-                Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    // Flag display
                     Text(
-                        text = country.name,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp,
-                        color = TextDark
+                        text = country.flag,
+                        fontSize = 28.sp,
+                        modifier = Modifier.padding(end = 12.dp)
                     )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = if (country.code == "BD") "বাংলা (Bengali)" else "English (US)",
-                        fontSize = 12.sp,
-                        color = TextGray
-                    )
+                    
+                    Column {
+                        Text(
+                            text = country.name,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 16.sp,
+                            color = TextDark
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = if (country.code == "BD") "বাংলা (Bengali)" else "English (US)",
+                            fontSize = 12.sp,
+                            color = TextGray
+                        )
+                    }
                 }
+                
+                Icon(
+                    imageVector = if (isSelected) Icons.Default.CheckCircle else Icons.Outlined.Circle,
+                    contentDescription = null,
+                    tint = if (isSelected) PrimaryGreen else Color(0xFFD1D5DB),
+                    modifier = Modifier.size(22.dp)
+                )
             }
-            
-            Icon(
-                imageVector = if (isSelected) Icons.Default.CheckCircle else Icons.Outlined.Circle,
-                contentDescription = null,
-                tint = if (isSelected) PrimaryGreen else Color(0xFFD1D5DB),
-                modifier = Modifier.size(22.dp)
-            )
+            HorizontalDivider(color = Color(0xFFE5E7EB), thickness = 0.5.dp)
         }
     }
 }
