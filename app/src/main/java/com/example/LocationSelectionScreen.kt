@@ -430,9 +430,9 @@ fun LocationSelectionScreen(
                             }
                         },
                         colors = CardDefaults.cardColors(
-                            containerColor = if (state.isAutoLocation) PrimaryGreen.copy(alpha = 0.05f) else Color.White
+                            containerColor = if (state.isAutoLocation && state.locationName == "আমার অবস্থান") PrimaryGreen.copy(alpha = 0.05f) else Color.White
                         ),
-                        border = if (state.isAutoLocation) BorderStroke(1.5.dp, PrimaryGreen) else BorderStroke(1.dp, Color(0xFFE5E7EB)),
+                        border = if (state.isAutoLocation && state.locationName == "আমার অবস্থান") BorderStroke(1.5.dp, PrimaryGreen) else BorderStroke(1.dp, Color(0xFFE5E7EB)),
                         shape = RoundedCornerShape(14.dp),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -448,7 +448,7 @@ fun LocationSelectionScreen(
                                 modifier = Modifier
                                     .size(44.dp)
                                     .background(
-                                        color = if (state.isAutoLocation) PrimaryGreen.copy(alpha = 0.15f) else Color(0xFFF3F4F6),
+                                        color = if (state.isAutoLocation && state.locationName == "আমার অবস্থান") PrimaryGreen.copy(alpha = 0.15f) else Color(0xFFF3F4F6),
                                         shape = RoundedCornerShape(10.dp)
                                     ),
                                 contentAlignment = Alignment.Center
@@ -456,7 +456,7 @@ fun LocationSelectionScreen(
                                 Icon(
                                     imageVector = Icons.Default.MyLocation,
                                     contentDescription = null,
-                                    tint = if (state.isAutoLocation) PrimaryGreen else TextGray,
+                                    tint = if (state.isAutoLocation && state.locationName == "আমার অবস্থান") PrimaryGreen else TextGray,
                                     modifier = Modifier.size(22.dp)
                                 )
                             }
@@ -482,7 +482,75 @@ fun LocationSelectionScreen(
                                 )
                             }
 
-                            if (state.isAutoLocation) {
+                            if (state.isAutoLocation && state.locationName == "আমার অবস্থান") {
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = "Active",
+                                    tint = PrimaryGreen,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // OPTION 2: Web / Browser Geolocation API
+                item {
+                    val isWebActive = state.isAutoLocation && state.locationName != "আমার অবস্থান" && state.locationName != "ঢাকা" && state.locationName != "Dhaka"
+                    Card(
+                        onClick = {
+                            viewModel.detectLocationViaWeb(context)
+                        },
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isWebActive) PrimaryGreen.copy(alpha = 0.05f) else Color.White
+                        ),
+                        border = if (isWebActive) BorderStroke(1.5.dp, PrimaryGreen) else BorderStroke(1.dp, Color(0xFFE5E7EB)),
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .background(
+                                        color = if (isWebActive) PrimaryGreen.copy(alpha = 0.15f) else Color(0xFFF3F4F6),
+                                        shape = RoundedCornerShape(10.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Public,
+                                    contentDescription = null,
+                                    tint = if (isWebActive) PrimaryGreen else TextGray,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(16.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = if (isEng) "Web/Browser Geolocation" else "ওয়েব / ব্রাউজার জিওলোকেশন",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = TextDark
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = if (isEng) "Query browser's Geolocation API to instantly get city & coordinates" else "ব্রাউজারের জিওলোকেশন API দিয়ে তাৎক্ষণিক শহর ও স্থানাঙ্ক খুঁজুন",
+                                    fontSize = 11.sp,
+                                    color = TextGray
+                                )
+                            }
+
+                            if (isWebActive) {
                                 Icon(
                                     imageVector = Icons.Default.CheckCircle,
                                     contentDescription = "Active",

@@ -3,6 +3,7 @@ package com.example.viewmodel
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Looper
+import android.location.Geocoder
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.calculator.PrayerCalculator
@@ -21,6 +22,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.URL
+import org.json.JSONObject
 import java.util.Calendar
 import java.util.TimeZone
 import java.util.Date
@@ -342,34 +350,64 @@ class PrayerViewModel : ViewModel() {
         // Process resolved location helper
         fun processResolvedLocation(location: android.location.Location) {
             if (!_state.value.isAutoLocation) return
-            val timeZoneOffset = TimeZone.getDefault().getOffset(System.currentTimeMillis()) / (1000.0 * 60.0 * 60.0)
-            lastLat = location.latitude
-            lastLng = location.longitude
-            lastOffset = timeZoneOffset
-            hasLocationData = true
+            _state.update { it.copy(isLoading = true) }
+            
+            viewModelScope.launch(Dispatchers.IO) {
+                val timeZoneOffset = TimeZone.getDefault().getOffset(System.currentTimeMillis()) / (1000.0 * 60.0 * 60.0)
+                lastLat = location.latitude
+                lastLng = location.longitude
+                lastOffset = timeZoneOffset
+                hasLocationData = true
 
-            val alarmPrefs = context.getSharedPreferences("prayer_alarm_prefs", Context.MODE_PRIVATE)
-            alarmPrefs.edit()
-                .putFloat("lat", lastLat.toFloat())
-                .putFloat("lng", lastLng.toFloat())
-                .putFloat("offset", lastOffset.toFloat())
-                .apply()
+                // Try to resolve city name using Geocoder on background
+                var resolvedCityName = if (GlobalLanguage.isEnglish) "My Location" else "আমার অবস্থান"
+                try {
+                    val geocoder = Geocoder(context, Locale.getDefault())
+                    val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+                    val address = addresses?.firstOrNull()
+                    if (address != null) {
+                        resolvedCityName = address.locality ?: address.subAdminArea ?: address.adminArea ?: address.featureName ?: resolvedCityName
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
 
-            val times = PrayerCalculator.calculatePrayerTimes(lastLat, lastLng, lastOffset, lastMadhab)
-            calculateForbiddenTimes(times)
-            AlarmHelper.scheduleNextPrayer(
-                context = context, 
-                lat = lastLat, 
-                lng = lastLng, 
-                timezoneOffsetHor = lastOffset, 
-                alarms = _state.value.alarms,
-                locationName = "আমার অবস্থান",
-                isAuto = true
-            )
+                val alarmPrefs = context.getSharedPreferences("prayer_alarm_prefs", Context.MODE_PRIVATE)
+                alarmPrefs.edit()
+                    .putFloat("lat", lastLat.toFloat())
+                    .putFloat("lng", lastLng.toFloat())
+                    .putFloat("offset", lastOffset.toFloat())
+                    .putString("saved_district", resolvedCityName)
+                    .apply()
 
-            _state.update { it.copy(prayerTimes = times, locationName = "আমার অবস্থান", latitude = lastLat, longitude = lastLng) }
-            updateNextPrayer(times)
-            com.example.widget.WidgetUtils.updateAllWidgets(context)
+                val times = PrayerCalculator.calculatePrayerTimes(lastLat, lastLng, lastOffset, lastMadhab)
+                
+                withContext(Dispatchers.Main) {
+                    calculateForbiddenTimes(times)
+                    AlarmHelper.scheduleNextPrayer(
+                        context = context, 
+                        lat = lastLat, 
+                        lng = lastLng, 
+                        timezoneOffsetHor = lastOffset, 
+                        alarms = _state.value.alarms,
+                        locationName = resolvedCityName,
+                        isAuto = true
+                    )
+
+                    _state.update { 
+                        it.copy(
+                            isLoading = false,
+                            prayerTimes = times, 
+                            locationName = resolvedCityName, 
+                            selectedDistrict = resolvedCityName, 
+                            latitude = lastLat, 
+                            longitude = lastLng
+                        ) 
+                    }
+                    updateNextPrayer(times)
+                    com.example.widget.WidgetUtils.updateAllWidgets(context)
+                }
+            }
         }
 
         // If we have a very fresh location from LocationManager, prioritize it
@@ -415,6 +453,87 @@ class PrayerViewModel : ViewModel() {
             e.printStackTrace()
             if (lastKnownLoc != null) {
                 processResolvedLocation(lastKnownLoc)
+            }
+        }
+    }
+    
+    fun detectLocationViaWeb(context: Context) {
+        _state.update { it.copy(isLoading = true, error = null) }
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val url = URL("https://ipapi.co/json/")
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "GET"
+                connection.connectTimeout = 5000
+                connection.readTimeout = 5000
+                
+                val responseCode = connection.responseCode
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    val reader = BufferedReader(InputStreamReader(connection.inputStream))
+                    val response = StringBuilder()
+                    var line: String?
+                    while (reader.readLine().also { line = it } != null) {
+                        response.append(line)
+                    }
+                    reader.close()
+                    
+                    val json = JSONObject(response.toString())
+                    val city = json.optString("city", if (GlobalLanguage.isEnglish) "Detected City" else "সনাক্তকৃত শহর")
+                    val lat = json.getDouble("latitude")
+                    val lng = json.getDouble("longitude")
+                    val timeZoneOffset = TimeZone.getDefault().getOffset(System.currentTimeMillis()) / (1000.0 * 60.0 * 60.0)
+                    
+                    lastLat = lat
+                    lastLng = lng
+                    lastOffset = timeZoneOffset
+                    hasLocationData = true
+                    
+                    val alarmPrefs = context.getSharedPreferences("prayer_alarm_prefs", Context.MODE_PRIVATE)
+                    alarmPrefs.edit()
+                        .putBoolean("is_auto_location", true)
+                        .putString("saved_district", city)
+                        .putFloat("lat", lat.toFloat())
+                        .putFloat("lng", lng.toFloat())
+                        .putFloat("offset", timeZoneOffset.toFloat())
+                        .apply()
+                        
+                    val times = PrayerCalculator.calculatePrayerTimes(lat, lng, timeZoneOffset, lastMadhab)
+                    
+                    withContext(Dispatchers.Main) {
+                        calculateForbiddenTimes(times)
+                        AlarmHelper.scheduleNextPrayer(
+                            context = context, 
+                            lat = lat, 
+                            lng = lng, 
+                            timezoneOffsetHor = timeZoneOffset, 
+                            alarms = _state.value.alarms,
+                            locationName = city,
+                            isAuto = true
+                        )
+                        _state.update { 
+                            it.copy(
+                                isLoading = false,
+                                isAutoLocation = true,
+                                locationName = city,
+                                selectedDistrict = city,
+                                latitude = lat,
+                                longitude = lng,
+                                prayerTimes = times
+                            ) 
+                        }
+                        updateNextPrayer(times)
+                        com.example.widget.WidgetUtils.updateAllWidgets(context)
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        _state.update { it.copy(isLoading = false, error = "HTTP error: $responseCode") }
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    _state.update { it.copy(isLoading = false, error = "Error: ${e.message}") }
+                }
             }
         }
     }
