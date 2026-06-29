@@ -8,7 +8,7 @@ object HadithData {
     val hadithList: List<com.example.model.Hadith> = emptyList()
     val categories: List<String> = emptyList()
 }
-object DuaStorage {
-    fun isDuaSaved(context: android.content.Context, id: String): Boolean = false
-    fun toggleSavedDua(context: android.content.Context, id: String) {}
+class DuaStorage(context: android.content.Context) {
+    fun isDuaSaved(id: String): Boolean = false
+    fun toggleSavedDua(id: String) {}
 }

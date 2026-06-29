@@ -213,7 +213,7 @@ fun LanguageStep(
     
     var searchQuery by remember { mutableStateOf("") }
     
-    val isBengali = language == com.example.viewmodel.AppLanguage.BENGALI
+    val isBengali = language == com.example.viewmodel.AppLanguages.BENGALI
     
     val titleText = if (isBengali) "দেশ ও ভাষা নির্বাচন করুন" else "Select Country & Language"
     val subtitleText = if (isBengali) "তালিকা থেকে আপনার দেশ বা ভাষা নির্বাচন করুন" else "Select your country or language from the list"

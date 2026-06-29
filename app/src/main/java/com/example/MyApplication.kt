@@ -1,9 +1,9 @@
 package com.example
 
 import android.app.Application
-import com.example.config.AppCore
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
+import com.example.BuildConfig
 
 class MyApplication : Application() {
     override fun onCreate() {
@@ -12,10 +12,10 @@ class MyApplication : Application() {
         try {
             if (FirebaseApp.getApps(this).isEmpty()) {
                 val options = FirebaseOptions.Builder()
-                    .setApiKey(AppCore.k1())
-                    .setApplicationId(AppCore.k2())
-                    .setProjectId(AppCore.k3())
-                    .setStorageBucket(AppCore.k4())
+                    .setApiKey(BuildConfig.FB_K1)
+                    .setApplicationId(BuildConfig.FB_K2)
+                    .setProjectId(BuildConfig.FB_K3)
+                    .setStorageBucket(BuildConfig.FB_K4)
                     .build()
                 FirebaseApp.initializeApp(this, options)
             }

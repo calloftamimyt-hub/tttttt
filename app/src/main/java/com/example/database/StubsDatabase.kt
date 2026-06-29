@@ -8,7 +8,7 @@ class UserAlarm(
     val minute: Int = 0,
     val amPm: String = "AM",
     val label: String = "",
-    val days: List<Int> = emptyList(),
+    val days: String = "",
     val deleteAfterRinging: Boolean = false,
     val sound: String = "",
     val ringtoneUri: String = "",
@@ -41,5 +41,12 @@ class NotificationDao {
     fun countByRemoteId(id: String): Int = 0
     fun insertNotification(entity: NotificationEntity) {}
     fun getAllNotifications(): kotlinx.coroutines.flow.Flow<List<NotificationEntity>> = kotlinx.coroutines.flow.emptyFlow()
+    fun getUnreadCount(): kotlinx.coroutines.flow.Flow<Int> = kotlinx.coroutines.flow.flowOf(0)
+    fun markAllAsRead() {}
+    fun deleteAllNotifications() {}
+    fun deleteNotificationById(id: String) {}
+    fun updateNotification(entity: NotificationEntity) {}
 }
-class NotificationEntity(val title: String, val body: String, val timestamp: Long, val type: String, val actorName: String, val remoteId: String)
+class NotificationEntity(val title: String, val body: String, val timestamp: Long, val type: String, val actorName: String, val remoteId: String, val id: String = "", val isRead: Boolean = false, val itemTitle: String = "") {
+    fun copy(isRead: Boolean = false): NotificationEntity = this
+}

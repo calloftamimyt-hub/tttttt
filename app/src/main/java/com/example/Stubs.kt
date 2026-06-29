@@ -18,12 +18,18 @@ operator fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T = t
 fun <T> StateFlow<T>.collectAsState(): State<T> = mutableStateOf(this.value)
 
 // Stubs for missing UI components
-@Composable fun TrackerScreen() {}
-@Composable fun TasbihScreen() {}
-@Composable fun SavedDuasScreen() {}
-@Composable fun SavedHadithsScreen() {}
-@Composable fun SettingsScreen() {}
-@Composable fun ZakatCalculatorScreen() {}
+@Composable fun TrackerScreen(onBack: () -> Unit = {}) {}
+@Composable fun TasbihScreen(onBack: () -> Unit = {}) {}
+@Composable fun SavedDuasScreen(onBack: () -> Unit = {}) {}
+@Composable fun SavedHadithsScreen(onBack: () -> Unit = {}) {}
+@Composable fun SettingsScreen(
+    onBack: () -> Unit = {},
+    viewModel: com.example.viewmodel.SettingsViewModel? = null,
+    prayerAlarms: Map<String, Boolean> = emptyMap(),
+    onTogglePrayerAlarm: (String) -> Unit = {}
+) {}
+@Composable fun ZakatCalculatorScreen(onBack: () -> Unit = {}) {}
+@Composable fun AllahNamesScreen(onBack: () -> Unit = {}) {}
 
 fun Int.toBengaliDigits(): String = this.toString()
 
@@ -31,42 +37,15 @@ class AppCore {
     fun initialize() {}
 }
 
-@Composable fun SocialMediaBlockerScreen() {}
-@Composable fun WebsiteBlockerScreen() {}
-@Composable fun ScreenTimeScreen() {}
-
-class DailyTracker(
-    val date: String = "",
-    val fajr: Boolean = false,
-    val dhuhr: Boolean = false,
-    val asr: Boolean = false,
-    val maghrib: Boolean = false,
-    val isha: Boolean = false,
-    val quran: Boolean = false,
-    val charity: Boolean = false,
-    val reading: Boolean = false,
-    val istighfar: Boolean = false,
-    val parents: Boolean = false
-)
+@Composable fun SocialMediaBlockerScreen(onBack: () -> Unit = {}) {}
+@Composable fun WebsiteBlockerScreen(onBack: () -> Unit = {}) {}
+@Composable fun ScreenTimeScreen(onBack: () -> Unit = {}) {}
 
 object CountryData {
     val components: List<Country> = emptyList()
 }
 class Country(val name: String = "", val code: String = "", val flag: String = "")
-class PrayerTimes(
-    val fajr: String = "",
-    val sunrise: String = "",
-    val dhuhr: String = "",
-    val asr: String = "",
-    val maghrib: String = "",
-    val isha: String = "",
-    val fajrHours: Double = 0.0,
-    val sunriseHours: Double = 0.0,
-    val dhuhrHours: Double = 0.0,
-    val asrHours: Double = 0.0,
-    val maghribHours: Double = 0.0,
-    val ishaHours: Double = 0.0
-)
+// Removed duplicate PrayerTimes to avoid conflict with com.example.calculator.PrayerTimes
 
 // NOTE: Kotlin does not allow multiple packages in one file with declarations before the package statement.
 // Wait, I will just put them in com.example and then write `create_file` for other packages.

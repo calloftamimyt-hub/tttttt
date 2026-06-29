@@ -17,4 +17,5 @@ class PrayerTimes(
 
 object PrayerCalculator {
     fun calculate(date: java.util.Date, lat: Double, lng: Double, timezone: Double): Any = Any()
+    fun calculatePrayerTimes(lat: Double, lng: Double, offset: Double, madhab: Int, calendar: java.util.Calendar = java.util.Calendar.getInstance()): PrayerTimes = PrayerTimes()
 }

@@ -33,10 +33,16 @@ android {
     applicationId = "com.aistudio.halalcircle.vqyptl"
     minSdk = 23
     targetSdk = 36
-    versionCode = 11
-    versionName = "1.8"
+    // Increment versionCode for each release. versionName follows semver.
+    versionCode = 12
+    versionName = "1.9.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+    buildConfigField("String", "FB_K1", "\"${System.getenv("FB_K1") ?: ""}\"")
+    buildConfigField("String", "FB_K2", "\"${System.getenv("FB_K2") ?: ""}\"")
+    buildConfigField("String", "FB_K3", "\"${System.getenv("FB_K3") ?: ""}\"")
+    buildConfigField("String", "FB_K4", "\"${System.getenv("FB_K4") ?: ""}\"")
   }
 
   signingConfigs {
@@ -48,12 +54,12 @@ android {
       enableV1Signing = true
       enableV2Signing = true
     }
+    // Placeholder release configuration. Update with actual keystore details for production.
     create("releaseConfig") {
-      val keystoreFile = file("${rootDir}/release.keystore")
-      storeFile = keystoreFile
-      storePassword = "halalcircle"
-      keyAlias = "release"
-      keyPassword = "halalcircle"
+      storeFile = file(System.getenv("KEYSTORE_PATH") ?: "${rootDir}/release.keystore")
+      storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "halalcircle"
+      keyAlias = System.getenv("KEY_ALIAS") ?: "release"
+      keyPassword = System.getenv("KEY_PASSWORD") ?: "halalcircle"
       enableV1Signing = true
       enableV2Signing = true
     }
@@ -61,14 +67,21 @@ android {
 
   buildTypes {
     release {
-      isCrunchPngs = false
+      // Enables code shrinking, obfuscation, and optimization.
       isMinifyEnabled = true
+      // Enables resource shrinking, which is performed by the Android Gradle plugin.
       isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("releaseConfig")
+      
+      // Optimization for AAB generation
+      ndk {
+        debugSymbolLevel = "FULL"
+      }
     }
     debug {
       signingConfig = signingConfigs.getByName("debugConfig")
+      versionNameSuffix = "-debug"
     }
   }
   compileOptions {

@@ -3,7 +3,8 @@ package com.example.model
 class Country(
     val code: String = "",
     val name: String = "",
-    val flag: Int = 0
+    val flag: String = "",
+    val language: String = ""
 )
 class CountryData {
     companion object {
@@ -11,7 +12,6 @@ class CountryData {
     }
 }
 
-class UserAlarm(val id: Int = 0, val hour: Int = 0, val minute: Int = 0, val isEnabled: Boolean = false, val amPm: String = "", val label: String = "", val days: List<Int> = emptyList())
 class CircleAlert(
     val id: String = "",
     val docId: String = "",

@@ -42,14 +42,14 @@ class AlarmActivity : ComponentActivity() {
         }
 
         setContentView(R.layout.activity_alarm)
-
+        
         val label = intent.getStringExtra("ALARM_LABEL") ?: "HalalCircle Alarm"
-        findViewById<TextView>(R.id.appName).text = label
+        findViewById<TextView>(R.id.tvAlarmLabel).text = label
 
         val fromService = intent.getBooleanExtra("FROM_SERVICE", false)
         val alarmId = intent.getIntExtra("ALARM_ID", -1)
         val ringtoneUriStr = intent.getStringExtra("RINGTONE_URI") ?: ""
-
+        
         if (!fromService) {
             // ডিফল্ট অ্যালার্ম রিংটোন বাজানো শুরু করা
             val alarmUri = if (ringtoneUriStr.isNotEmpty()) {
@@ -63,7 +63,7 @@ class AlarmActivity : ComponentActivity() {
         }
 
         val btnSnooze = findViewById<Button>(R.id.btnSnooze)
-        val btnDismiss = findViewById<Button>(R.id.btnDismiss)
+        val btnDismiss = findViewById<Button>(R.id.btnStop)
 
         // সবুজ বাটন (Snooze): ১০ মিনিট পর আবার বাজবে
         btnSnooze.setOnClickListener {

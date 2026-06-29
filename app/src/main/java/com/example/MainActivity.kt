@@ -39,7 +39,9 @@ import com.example.viewmodel.PrayerViewModel
 import com.example.viewmodel.toBengali
 import com.example.viewmodel.SettingsViewModel
 import com.example.viewmodel.GlobalLanguage
-import com.example.viewmodel.AppLanguage
+import com.example.receiver.SocialBlockerService
+import com.example.receiver.AlarmHelper
+import com.example.calculator.PrayerTimes
 import com.example.ui.LocalAppStrings
 import com.example.ui.theme.*
 import android.app.Activity
@@ -51,7 +53,11 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.text.font.FontFamily
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
 
 
@@ -1879,20 +1885,22 @@ fun SplashScreen(onFinished: () -> Unit) {
 
     LaunchedEffect(Unit) {
         kotlinx.coroutines.delay(300)
-        kotlinx.coroutines.launch {
-            scale.animateTo(
-                targetValue = 1f,
-                animationSpec = androidx.compose.animation.core.spring(
-                    dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
-                    stiffness = androidx.compose.animation.core.Spring.StiffnessLow
+        coroutineScope {
+            launch {
+                scale.animateTo(
+                    targetValue = 1f,
+                    animationSpec = androidx.compose.animation.core.spring(
+                        dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
+                        stiffness = androidx.compose.animation.core.Spring.StiffnessLow
+                    )
                 )
-            )
-        }
-        kotlinx.coroutines.launch {
-            alpha.animateTo(
-                targetValue = 1f,
-                animationSpec = androidx.compose.animation.core.tween(800)
-            )
+            }
+            launch {
+                alpha.animateTo(
+                    targetValue = 1f,
+                    animationSpec = androidx.compose.animation.core.tween(800)
+                )
+            }
         }
         kotlinx.coroutines.delay(2000)
         onFinished()
