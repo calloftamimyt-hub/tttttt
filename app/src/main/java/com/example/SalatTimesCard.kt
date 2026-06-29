@@ -3,6 +3,7 @@ package com.example
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -184,6 +185,149 @@ fun SalatTimesCard(state: ViewState) {
                         isActive = false
                     )
                 }
+
+                // Decorative Divider for Forbidden Times Section
+                Spacer(modifier = Modifier.height(14.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(0.6.dp)
+                            .background(Color(0xFFE2E8F0))
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Forbidden Times Section Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Info,
+                        contentDescription = null,
+                        tint = Color(0xFFEF4444),
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(
+                        text = if (isEng) "Forbidden Prayer Times" else "নিষিদ্ধ সালাতের সময়",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1E293B)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Forbidden Times Row (3 Columns) styled beautifully inside the single Card
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    ForbiddenTimeCardPremium(
+                        title = if (isEng) "Sunrise" else "সূর্যোদয়",
+                        start = state.forbiddenSunrise,
+                        end = state.forbiddenSunriseEnd,
+                        icon = Icons.Outlined.WbTwilight,
+                        countdown = state.forbiddenSunriseCountdown,
+                        isEng = isEng,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    ForbiddenTimeCardPremium(
+                        title = if (isEng) "Noon" else "মধ্যাহ্ন",
+                        start = state.forbiddenNoon,
+                        end = state.forbiddenNoonEnd,
+                        icon = Icons.Outlined.WbSunny,
+                        countdown = state.forbiddenNoonCountdown,
+                        isEng = isEng,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    ForbiddenTimeCardPremium(
+                        title = if (isEng) "Sunset" else "সূর্যাস্ত",
+                        start = state.forbiddenSunset,
+                        end = state.forbiddenSunsetEnd,
+                        icon = Icons.Outlined.WbTwilight,
+                        countdown = state.forbiddenSunsetCountdown,
+                        isEng = isEng,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ForbiddenTimeCardPremium(
+    title: String,
+    start: String,
+    end: String,
+    icon: ImageVector,
+    countdown: String = "",
+    isEng: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF2F2)), // Soft red background indicating forbidden times
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, Color(0xFFFEE2E2))
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 10.dp, horizontal = 4.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
+                tint = Color(0xFFEF4444),
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = title,
+                color = Color(0xFF1E293B),
+                fontSize = 11.5.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = start,
+                color = Color(0xFFEF4444),
+                fontSize = 10.5.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = if (isEng) "to" else "থেকে",
+                color = Color(0xFF64748B),
+                fontSize = 9.sp
+            )
+            Text(
+                text = end,
+                color = Color(0xFFEF4444),
+                fontSize = 10.5.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+            if (countdown.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = countdown,
+                    color = Color(0xFFEF4444),
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .background(Color.White, RoundedCornerShape(4.dp))
+                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                )
             }
         }
     }

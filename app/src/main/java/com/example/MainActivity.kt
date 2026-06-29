@@ -871,10 +871,10 @@ fun UnifiedHeroCard(state: com.example.viewmodel.ViewState, onNavigateToPrayerDe
                 )
                 .padding(16.dp)
         ) {
+            // 1. Background Path Arc Canvas (Drawn behind the Countdown Circle)
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val width = size.width
                 val height = size.height
-                val arcHeight = height * 0.8f
                 val arcWidth = width * 0.85f
                 val startX = (width - arcWidth) / 2
                 val topY = height * 0.1f
@@ -894,62 +894,9 @@ fun UnifiedHeroCard(state: com.example.viewmodel.ViewState, onNavigateToPrayerDe
                         pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
                     )
                 )
-
-                // Calculate Position on Path
-                val t = progress
-                val p0x = startX
-                val p0y = bottomY
-                val p1x = width / 2
-                val p1y = -topY
-                val p2x = width - startX
-                val p2y = bottomY
-
-                val sunX = (1 - t) * (1 - t) * p0x + 2 * (1 - t) * t * p1x + t * t * p2x
-                val sunY = (1 - t) * (1 - t) * p0y + 2 * (1 - t) * t * p1y + t * t * p2y
-
-                // Draw Sun or Moon
-                if (isDay) {
-                    if (state.isRainy) {
-                        // Gray Sun/Cloud
-                        drawCircle(
-                            color = Color.DarkGray,
-                            radius = 12.dp.toPx(),
-                            center = androidx.compose.ui.geometry.Offset(sunX, sunY)
-                        )
-                        // Add some "clouds"
-                        drawCircle(
-                            color = Color.LightGray,
-                            radius = 10.dp.toPx(),
-                            center = androidx.compose.ui.geometry.Offset(sunX - 8.dp.toPx(), sunY + 4.dp.toPx())
-                        )
-                    } else {
-                        // Bright Sun
-                        drawCircle(
-                            brush = Brush.radialGradient(
-                                colors = listOf(Color(0xFFFDE047), Color(0xFFF97316)),
-                                center = androidx.compose.ui.geometry.Offset(sunX, sunY),
-                                radius = 15.dp.toPx()
-                            ),
-                            radius = 15.dp.toPx(),
-                            center = androidx.compose.ui.geometry.Offset(sunX, sunY)
-                        )
-                    }
-                } else {
-                    // Golden Crescent Moon on Light BG
-                    drawCircle(
-                        color = Color(0xFFFDE047),
-                        radius = 12.dp.toPx(),
-                        center = androidx.compose.ui.geometry.Offset(sunX, sunY)
-                    )
-                    drawCircle(
-                        color = Color(0xFFE2E8F0),
-                        radius = 10.dp.toPx(),
-                        center = androidx.compose.ui.geometry.Offset(sunX - 4.dp.toPx(), sunY - 2.dp.toPx())
-                    )
-                }
             }
 
-            // Foreground Circular Timer Overlay
+            // 2. Foreground Circular Timer Overlay (Salat Countdown Circle)
             Box(contentAlignment = Alignment.Center, modifier = Modifier.align(Alignment.Center).size(130.dp)) {
                 // Background circle
                 androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
@@ -992,6 +939,49 @@ fun UnifiedHeroCard(state: com.example.viewmodel.ViewState, onNavigateToPrayerDe
                     
                     Text(state.nextPrayerRemaining, color = PrimaryGreen, fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.padding(top=2.dp))
                     Text(if (GlobalLanguage.isEnglish) "Time remaining" else "শেষ হতে বাকি", color = TextGray, fontSize = 10.sp, modifier = Modifier.padding(top=2.dp))
+                }
+            }
+
+            // 3. Foreground Moving Indicator Canvas (Drawn ON TOP of the Salat Countdown Circle)
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val width = size.width
+                val height = size.height
+                val arcWidth = width * 0.85f
+                val startX = (width - arcWidth) / 2
+                val topY = height * 0.1f
+                val bottomY = height * 0.85f
+
+                // Calculate Position on Path
+                val t = progress
+                val p0x = startX
+                val p0y = bottomY
+                val p1x = width / 2
+                val p1y = -topY
+                val p2x = width - startX
+                val p2y = bottomY
+
+                val sunX = (1 - t) * (1 - t) * p0x + 2 * (1 - t) * t * p1x + t * t * p2x
+                val sunY = (1 - t) * (1 - t) * p0y + 2 * (1 - t) * t * p1y + t * t * p2y
+
+                // Draw Sun or Moon with a solid, premium gold/amber color (no color change transitions!)
+                if (isDay) {
+                    drawCircle(
+                        color = Color(0xFFF59E0B), // Stable elegant amber gold
+                        radius = 13.dp.toPx(),
+                        center = androidx.compose.ui.geometry.Offset(sunX, sunY)
+                    )
+                } else {
+                    // Golden Crescent Moon
+                    drawCircle(
+                        color = Color(0xFFF59E0B), // same stable amber gold
+                        radius = 13.dp.toPx(),
+                        center = androidx.compose.ui.geometry.Offset(sunX, sunY)
+                    )
+                    drawCircle(
+                        color = Color(0xFFF1F5F9), // Match background of the container
+                        radius = 11.dp.toPx(),
+                        center = androidx.compose.ui.geometry.Offset(sunX - 4.dp.toPx(), sunY - 2.dp.toPx())
+                    )
                 }
             }
             
@@ -1285,34 +1275,8 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Salat Times Section (Nafal & Farz)
+        // Salat Times Section (Nafal, Farz & Forbidden)
         SalatTimesCard(state)
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Forbidden Times (Always visible by default)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp), 
-            horizontalArrangement = Arrangement.SpaceBetween, 
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(LocalAppStrings.current.forbidden_times, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = TextDark)
-            Icon(Icons.Outlined.Info, contentDescription = "Info", tint=TextGray, modifier=Modifier.size(18.dp))
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp), 
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            ForbiddenTimeCard(LocalAppStrings.current.sunrise, state.forbiddenSunrise, state.forbiddenSunriseEnd, Icons.Outlined.WbTwilight, state.forbiddenSunriseCountdown)
-            ForbiddenTimeCard(LocalAppStrings.current.noon, state.forbiddenNoon, state.forbiddenNoonEnd, Icons.Outlined.WbSunny, state.forbiddenNoonCountdown)
-            ForbiddenTimeCard(LocalAppStrings.current.sunset, state.forbiddenSunset, state.forbiddenSunsetEnd, Icons.Outlined.WbTwilight, state.forbiddenSunsetCountdown)
-        }
 
         Spacer(modifier = Modifier.height(24.dp))
     }
