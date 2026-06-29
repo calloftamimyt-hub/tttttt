@@ -1226,10 +1226,13 @@ fun HomeScreen(
                 .padding(horizontal = 20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            val progressPercentInt = (state.specialCountdownProgress * 100).toInt()
+            val progressText = if (GlobalLanguage.isEnglish) "$progressPercentInt%" else "$progressPercentInt%".toBengali()
             SubInfoItemProgress(
                 title = state.specialCountdownLabel, 
                 time = state.specialCountdownTime, 
-                progress = "${(state.specialCountdownProgress * 100).toInt()}%".toBengali(),
+                progressFloat = state.specialCountdownProgress,
+                progressText = progressText,
                 isLarge = true
             )
             Spacer(modifier = Modifier.weight(1f))
@@ -1239,9 +1242,11 @@ fun HomeScreen(
                 if (GlobalLanguage.isEnglish) "Sehri Last Time" else "সাহরির শেষ সময়"
             }
             val subInfoTime = if (state.isIftarCountdown) {
-                state.prayerTimes?.maghrib?.toBengali() ?: "--:--"
+                val t = state.prayerTimes?.maghrib ?: "--:--"
+                if (GlobalLanguage.isEnglish) t else t.toBengali()
             } else {
-                state.prayerTimes?.fajr?.toBengali() ?: "--:--"
+                val t = state.prayerTimes?.fajr ?: "--:--"
+                if (GlobalLanguage.isEnglish) t else t.toBengali()
             }
             SubInfoItem(
                 title = subInfoTitle, 
@@ -1296,7 +1301,13 @@ fun SubInfoItem(title: String, time: String) {
 }
 
 @Composable
-fun SubInfoItemProgress(title: String, time: String, progress: String, isLarge: Boolean = false) {
+fun SubInfoItemProgress(
+    title: String, 
+    time: String, 
+    progressFloat: Float, 
+    progressText: String, 
+    isLarge: Boolean = false
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -1308,15 +1319,18 @@ fun SubInfoItemProgress(title: String, time: String, progress: String, isLarge: 
                 color = BgLight,
                 modifier = Modifier.fillMaxSize()
             )
-            val progressFactor = try { progress.replace("%", "").trim().toDouble() / 100.0 } catch(e: Exception) { 0.75 }
             CircularProgressIndicator(
-                progress = { progressFactor.toFloat() },
+                progress = { progressFloat },
                 strokeWidth = if (isLarge) 4.dp else 3.dp,
                 color = PrimaryGreen,
                 modifier = Modifier.fillMaxSize()
             )
-            // progress is in Bengali digits, need to handle or just display
-            Text(progress, fontSize = if (isLarge) 14.sp else 10.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text(
+                text = progressText, 
+                fontSize = if (isLarge) 14.sp else 10.sp, 
+                fontWeight = FontWeight.Bold, 
+                color = Color.Black
+            )
         }
         Column {
             Text(title, fontSize = if (isLarge) 11.sp else 9.sp, color = TextGray)

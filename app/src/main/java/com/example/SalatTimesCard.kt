@@ -39,107 +39,76 @@ fun SalatTimesCard(state: ViewState) {
             if (isEng) timeStr else timeStr.toBengali()
         }
 
+        // Single Premium Card
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 4.dp),
-            shape = RoundedCornerShape(12.dp),
+                .padding(horizontal = 20.dp, vertical = 6.dp),
+            shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(IntrinsicSize.Min) 
+                    .padding(14.dp)
             ) {
-                // Left Column: Nafil
-                Column(modifier = Modifier.weight(1f).padding(vertical = 10.dp, horizontal = 8.dp)) {
+                // Fard Prayers Section Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.AccessTime,
+                        contentDescription = null,
+                        tint = Color(0xFF10B982),
+                        modifier = Modifier.size(18.dp)
+                    )
                     Text(
-                        text = if (isEng) "Nafil Salat" else "নফল নামাজ",
-                        fontSize = 12.sp,
+                        text = if (isEng) "Five Fard Prayers" else "পাঁচ ওয়াক্ত ফরজ নামাজ",
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF2E7D32),
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
-                    OrnamentalDivider()
-                    Spacer(modifier = Modifier.height(2.dp))
-                    
-                    SalatRowCompact(
-                        icon = Icons.Outlined.WbTwilight,
-                        name = if (isEng) "Tahajjud" else "তাহাজ্জুদ",
-                        time = formatTime(times.fajrHours - 1.2),
-                        isActive = false
-                    )
-                    SalatRowCompact(
-                        icon = Icons.Outlined.MenuBook,
-                        name = if (isEng) "Ishraq" else "ইশরাক",
-                        time = formatTime(times.sunriseHours + 0.3),
-                        isActive = false
-                    )
-                    SalatRowCompact(
-                        icon = Icons.Outlined.WbSunny,
-                        name = if (isEng) "Chasht" else "চাশত",
-                        time = formatTime(times.sunriseHours + 1.5),
-                        isActive = false
-                    )
-                    SalatRowCompact(
-                        icon = Icons.Outlined.WbTwilight,
-                        name = if (isEng) "Awwabin" else "আওয়াবীন",
-                        time = formatTime(times.maghribHours + 0.3),
-                        isActive = false
+                        color = Color(0xFF1E293B)
                     )
                 }
 
-                // Vertical Divider
-                Box(
-                    modifier = Modifier
-                        .width(0.6.dp)
-                        .fillMaxHeight()
-                        .padding(vertical = 10.dp)
-                        .background(Color(0xFFEEEEEE))
-                )
+                Spacer(modifier = Modifier.height(8.dp))
 
-                // Right Column: Farz
-                Column(modifier = Modifier.weight(1f).padding(vertical = 10.dp, horizontal = 8.dp)) {
-                    Text(
-                        text = if (isEng) "Fard Prayers" else "ফরজ নামাজ",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1B5E20),
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
-                    OrnamentalDivider()
-                    Spacer(modifier = Modifier.height(2.dp))
-                    
-                    SalatRowCompact(
+                // Fard Prayers List (Slim, Compact, Full Width)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    SalatRowPremium(
                         icon = Icons.Outlined.WbTwilight,
                         name = if (isEng) "Fajr" else "ফজর",
                         time = formatTime(times.fajrHours),
                         isActive = state.currentPrayerName == "Fajr",
                         countdown = state.fajrCountdown
                     )
-                    SalatRowCompact(
+                    SalatRowPremium(
                         icon = Icons.Outlined.WbSunny,
                         name = if (isEng) "Dhuhr" else "যোহর",
                         time = formatTime(times.dhuhrHours),
                         isActive = state.currentPrayerName == "Dhuhr",
                         countdown = state.dhuhrCountdown
                     )
-                    SalatRowCompact(
+                    SalatRowPremium(
                         icon = Icons.Outlined.Cloud,
                         name = if (isEng) "Asr" else "আসর",
                         time = formatTime(times.asrHours),
                         isActive = state.currentPrayerName == "Asr",
                         countdown = state.asrCountdown
                     )
-                    SalatRowCompact(
+                    SalatRowPremium(
                         icon = Icons.Outlined.WbTwilight,
                         name = if (isEng) "Maghrib" else "মাগরিব",
                         time = formatTime(times.maghribHours),
                         isActive = state.currentPrayerName == "Maghrib",
                         countdown = state.maghribCountdown
                     )
-                    SalatRowCompact(
+                    SalatRowPremium(
                         icon = Icons.Outlined.ModeNight,
                         name = if (isEng) "Isha" else "এশা",
                         time = formatTime(times.ishaHours),
@@ -147,76 +116,136 @@ fun SalatTimesCard(state: ViewState) {
                         countdown = state.ishaCountdown
                     )
                 }
+
+                // Decorative Divider
+                Spacer(modifier = Modifier.height(14.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(0.6.dp)
+                            .background(Color(0xFFE2E8F0))
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Nafil Salat Section Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.AutoAwesome,
+                        contentDescription = null,
+                        tint = Color(0xFF3B82F6),
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(
+                        text = if (isEng) "Nafil Salat" else "নফল নামাজ",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1E293B)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Nafil Salat List (Vertical List)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    SalatRowPremium(
+                        icon = Icons.Outlined.WbTwilight,
+                        name = if (isEng) "Tahajjud" else "তাহাজ্জুদ",
+                        time = formatTime(times.fajrHours - 1.2),
+                        isActive = false
+                    )
+                    SalatRowPremium(
+                        icon = Icons.Outlined.MenuBook,
+                        name = if (isEng) "Ishraq" else "ইশরাক",
+                        time = formatTime(times.sunriseHours + 0.3),
+                        isActive = false
+                    )
+                    SalatRowPremium(
+                        icon = Icons.Outlined.WbSunny,
+                        name = if (isEng) "Chasht" else "চাশত",
+                        time = formatTime(times.sunriseHours + 1.5),
+                        isActive = false
+                    )
+                    SalatRowPremium(
+                        icon = Icons.Outlined.WbTwilight,
+                        name = if (isEng) "Awwabin" else "আওয়াবীন",
+                        time = formatTime(times.maghribHours + 0.3),
+                        isActive = false
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun OrnamentalDivider() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 2.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Box(modifier = Modifier.weight(1f).height(0.6.dp).background(Color(0xFFEEEEEE)))
-    }
-}
-
-@Composable
-fun CustomHorizontalDivider() {
-    HorizontalDivider(
-        color = Color(0xFFF5F5F5),
-        thickness = 0.5.dp,
-        modifier = Modifier.padding(vertical = 1.dp)
-    )
-}
-
-@Composable
-fun SalatRowCompact(icon: ImageVector, name: String, time: String, isActive: Boolean, countdown: String = "") {
-    val textColor = if (isActive) Color(0xFF10B982) else Color(0xFF444444)
-    val fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium
-    val bgColor = if (isActive) Color(0xFF10B982).copy(alpha = 0.08f) else Color.Transparent
+fun SalatRowPremium(
+    icon: ImageVector,
+    name: String,
+    time: String,
+    isActive: Boolean,
+    countdown: String = ""
+) {
+    val containerBg = if (isActive) Color(0xFF10B982).copy(alpha = 0.08f) else Color(0xFFF8FAFC)
+    val nameColor = if (isActive) Color(0xFF10B982) else Color(0xFF334155)
+    val timeColor = if (isActive) Color(0xFF10B982) else Color(0xFF0F172A)
+    val iconColor = if (isActive) Color(0xFF10B982) else Color(0xFF64748B)
+    val fontWeight = if (isActive) FontWeight.Bold else FontWeight.SemiBold
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 1.dp)
-            .background(bgColor, shape = RoundedCornerShape(4.dp))
-            .padding(vertical = 3.dp, horizontal = 4.dp),
+            .background(containerBg, shape = RoundedCornerShape(10.dp))
+            .padding(vertical = 8.dp, horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Icon
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = if (isActive) Color(0xFF10B982) else Color(0xFF757575),
-            modifier = Modifier.size(13.dp)
+            tint = iconColor,
+            modifier = Modifier.size(16.dp)
         )
-        Spacer(modifier = Modifier.width(4.dp))
+
+        Spacer(modifier = Modifier.width(10.dp))
+
+        // Name and Countdown
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = name,
-                fontSize = 10.5.sp,
+                fontSize = 12.5.sp,
                 fontWeight = fontWeight,
-                color = textColor,
+                color = nameColor,
                 maxLines = 1
             )
             if (countdown.isNotEmpty()) {
                 Text(
                     text = countdown,
-                    fontSize = 8.sp,
-                    color = if (isActive) Color(0xFF10B982) else Color.Gray,
-                    fontWeight = FontWeight.Medium
+                    fontSize = 9.5.sp,
+                    color = if (isActive) Color(0xFF10B982) else Color(0xFF64748B),
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(top = 1.dp)
                 )
             }
         }
+
+        // Time Value
         Text(
             text = time,
-            fontSize = 11.sp,
+            fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
-            color = if (isActive) Color(0xFF10B982) else Color(0xFF212121),
+            color = timeColor,
             maxLines = 1
         )
     }

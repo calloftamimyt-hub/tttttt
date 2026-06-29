@@ -429,8 +429,11 @@ class PrayerViewModel : ViewModel() {
 
     private fun formatDiff(diffInHours: Double, isEnglish: Boolean): String {
         var d = diffInHours
-        while (d < 0) d += 24.0
-        while (d >= 24) d -= 24.0
+        if (d.isNaN() || d.isInfinite()) {
+            return if (isEnglish) "00:00:00" else "০০:০০:০০"
+        }
+        d = d % 24.0
+        if (d < 0) d += 24.0
         val totalSeconds = Math.round(d * 3600).toInt()
         val h = totalSeconds / 3600
         val m = (totalSeconds % 3600) / 60
@@ -442,285 +445,290 @@ class PrayerViewModel : ViewModel() {
     private fun startCountdownTimer() {
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
+            android.util.Log.d("PrayerViewModel", "startCountdownTimer job started successfully")
             while(true) {
-                val times = _state.value.prayerTimes ?: PrayerCalculator.calculatePrayerTimes(lastLat, lastLng, lastOffset, lastMadhab)
-                val cal = Calendar.getInstance()
-                val currentHourDec = cal.get(Calendar.HOUR_OF_DAY) + cal.get(Calendar.MINUTE)/60.0 + cal.get(Calendar.SECOND)/3600.0
-                
-                val sunriseHours = times.sunriseHours
-                val dhuhrHours = times.dhuhrHours
-                val asrHours = times.asrHours
-                val maghribHours = times.maghribHours
-                val ishaHours = times.ishaHours
-                val fajrHours = times.fajrHours
+                try {
+                    val times = _state.value.prayerTimes ?: PrayerCalculator.calculatePrayerTimes(lastLat, lastLng, lastOffset, lastMadhab)
+                    val cal = Calendar.getInstance()
+                    val currentHourDec = cal.get(Calendar.HOUR_OF_DAY) + cal.get(Calendar.MINUTE)/60.0 + cal.get(Calendar.SECOND)/3600.0
+                    
+                    val sunriseHours = times.sunriseHours
+                    val dhuhrHours = times.dhuhrHours
+                    val asrHours = times.asrHours
+                    val maghribHours = times.maghribHours
+                    val ishaHours = times.ishaHours
+                    val fajrHours = times.fajrHours
 
-                // Check if we are in the Nafl/Chasht period (Sunrise to Dhuhr)
-                val isNaflPeriod = currentHourDec >= sunriseHours && currentHourDec < dhuhrHours
+                    // Check if we are in the Nafl/Chasht period (Sunrise to Dhuhr)
+                    val isNaflPeriod = currentHourDec >= sunriseHours && currentHourDec < dhuhrHours
 
-                var currentName = ""
-                var currentNameBen = ""
-                var currentStartTime = 0.0
-                var currentEndTime = 0.0
+                    var currentName = ""
+                    var currentNameBen = ""
+                    var currentStartTime = 0.0
+                    var currentEndTime = 0.0
 
-                var nextName = ""
-                var nextNameBen = ""
+                    var nextName = ""
+                    var nextNameBen = ""
 
-                val isEng = GlobalLanguage.isEnglish
+                    val isEng = GlobalLanguage.isEnglish
 
-                if (isNaflPeriod) {
-                    currentName = "Duha"
-                    currentNameBen = if (isEng) "Chasht" else "চাশত"
-                    currentStartTime = sunriseHours
-                    currentEndTime = dhuhrHours
-
-                    nextName = "Dhuhr"
-                    nextNameBen = if (isEng) "Dhuhr" else "যোহর"
-                } else {
-                    if (currentHourDec >= fajrHours && currentHourDec < sunriseHours) {
-                        currentName = "Fajr"
-                        currentNameBen = if (isEng) "Fajr" else "ফজর"
-                        currentStartTime = fajrHours
-                        currentEndTime = sunriseHours
+                    if (isNaflPeriod) {
+                        currentName = "Duha"
+                        currentNameBen = if (isEng) "Chasht" else "চাশত"
+                        currentStartTime = sunriseHours
+                        currentEndTime = dhuhrHours
 
                         nextName = "Dhuhr"
                         nextNameBen = if (isEng) "Dhuhr" else "যোহর"
-                    } else if (currentHourDec >= dhuhrHours && currentHourDec < asrHours) {
-                        currentName = "Dhuhr"
-                        currentNameBen = if (isEng) "Dhuhr" else "যোহর"
-                        currentStartTime = dhuhrHours
-                        currentEndTime = asrHours
-
-                        nextName = "Asr"
-                        nextNameBen = if (isEng) "Asr" else "আসর"
-                    } else if (currentHourDec >= asrHours && currentHourDec < maghribHours) {
-                        currentName = "Asr"
-                        currentNameBen = if (isEng) "Asr" else "আসর"
-                        currentStartTime = asrHours
-                        currentEndTime = maghribHours
-
-                        nextName = "Maghrib"
-                        nextNameBen = if (isEng) "Maghrib" else "মাগরিব"
-                    } else if (currentHourDec >= maghribHours && currentHourDec < ishaHours) {
-                        currentName = "Maghrib"
-                        currentNameBen = if (isEng) "Maghrib" else "মাগরিব"
-                        currentStartTime = maghribHours
-                        currentEndTime = ishaHours
-
-                        nextName = "Isha"
-                        nextNameBen = if (isEng) "Isha" else "এশা"
                     } else {
-                        currentName = "Isha"
-                        currentNameBen = if (isEng) "Isha" else "এশা"
-                        
-                        if (currentHourDec >= ishaHours) {
-                            currentStartTime = ishaHours
-                            val tomorrow = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 1) }
-                            val tomorrowTimes = PrayerCalculator.calculatePrayerTimes(lastLat, lastLng, lastOffset, lastMadhab, tomorrow)
-                            currentEndTime = tomorrowTimes.fajrHours + 24.0
+                        if (currentHourDec >= fajrHours && currentHourDec < sunriseHours) {
+                            currentName = "Fajr"
+                            currentNameBen = if (isEng) "Fajr" else "ফজর"
+                            currentStartTime = fajrHours
+                            currentEndTime = sunriseHours
+
+                            nextName = "Dhuhr"
+                            nextNameBen = if (isEng) "Dhuhr" else "যোহর"
+                        } else if (currentHourDec >= dhuhrHours && currentHourDec < asrHours) {
+                            currentName = "Dhuhr"
+                            currentNameBen = if (isEng) "Dhuhr" else "যোহর"
+                            currentStartTime = dhuhrHours
+                            currentEndTime = asrHours
+
+                            nextName = "Asr"
+                            nextNameBen = if (isEng) "Asr" else "আসর"
+                        } else if (currentHourDec >= asrHours && currentHourDec < maghribHours) {
+                            currentName = "Asr"
+                            currentNameBen = if (isEng) "Asr" else "আসর"
+                            currentStartTime = asrHours
+                            currentEndTime = maghribHours
+
+                            nextName = "Maghrib"
+                            nextNameBen = if (isEng) "Maghrib" else "মাগরিব"
+                        } else if (currentHourDec >= maghribHours && currentHourDec < ishaHours) {
+                            currentName = "Maghrib"
+                            currentNameBen = if (isEng) "Maghrib" else "মাগরিব"
+                            currentStartTime = maghribHours
+                            currentEndTime = ishaHours
+
+                            nextName = "Isha"
+                            nextNameBen = if (isEng) "Isha" else "এশা"
                         } else {
-                            val yesterday = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -1) }
-                            val yesterdayTimes = PrayerCalculator.calculatePrayerTimes(lastLat, lastLng, lastOffset, lastMadhab, yesterday)
-                            currentStartTime = yesterdayTimes.ishaHours - 24.0
-                            currentEndTime = fajrHours
+                            currentName = "Isha"
+                            currentNameBen = if (isEng) "Isha" else "এশা"
+                            
+                            if (currentHourDec >= ishaHours) {
+                                currentStartTime = ishaHours
+                                val tomorrow = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 1) }
+                                val tomorrowTimes = PrayerCalculator.calculatePrayerTimes(lastLat, lastLng, lastOffset, lastMadhab, tomorrow)
+                                currentEndTime = tomorrowTimes.fajrHours + 24.0
+                            } else {
+                                val yesterday = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -1) }
+                                val yesterdayTimes = PrayerCalculator.calculatePrayerTimes(lastLat, lastLng, lastOffset, lastMadhab, yesterday)
+                                currentStartTime = yesterdayTimes.ishaHours - 24.0
+                                currentEndTime = fajrHours
+                            }
+
+                            nextName = "Fajr"
+                            nextNameBen = if (isEng) "Fajr" else "ফজর"
                         }
-
-                        nextName = "Fajr"
-                        nextNameBen = if (isEng) "Fajr" else "ফজর"
                     }
-                }
 
-                // Handle rotating names for Nafl period (Between Sunrise and Dhuhr)
-                val rotating = if (isNaflPeriod) {
-                    if (isEng) listOf("Ishraq", "Chasht", "Duha") 
-                    else listOf("ইশরাক", "চাশত", "দোহা")
-                } else {
-                    emptyList()
-                }
+                    // Handle rotating names for Nafl period (Between Sunrise and Dhuhr)
+                    val rotating = if (isNaflPeriod) {
+                        if (isEng) listOf("Ishraq", "Chasht", "Duha") 
+                        else listOf("ইশরাক", "চাশত", "দোহা")
+                    } else {
+                        emptyList()
+                    }
 
-                // Next Prayer Countdown
-                var diff = currentEndTime - currentHourDec
-                if (diff < 0) diff += 24.0
-                val totalDuration = currentEndTime - currentStartTime
-                val progress = ((currentHourDec - currentStartTime) / totalDuration).coerceIn(0.0, 1.0).toFloat()
-                val nextPrayerRemainingVal = formatDiff(diff, isEng)
+                    // Next Prayer Countdown
+                    var diff = currentEndTime - currentHourDec
+                    if (diff < 0) diff += 24.0
+                    val totalDuration = currentEndTime - currentStartTime
+                    val progress = ((currentHourDec - currentStartTime) / totalDuration).coerceIn(0.0, 1.0).toFloat()
+                    val nextPrayerRemainingVal = formatDiff(diff, isEng)
 
-                // Sehri / Iftar Countdown
-                val fajr = times.fajrHours
-                val maghrib = times.maghribHours
-                
-                var specialLabel = if (isEng) "Sehri Remaining" else "সাহরির বাকি"
-                var targetSpecialHour = fajr
-                var startSpecialHour = maghrib - 24.0
-                var isIftarCountdownVal = false
+                    // Sehri / Iftar Countdown
+                    val fajr = times.fajrHours
+                    val maghrib = times.maghribHours
+                    
+                    var specialLabel = if (isEng) "Sehri Remaining" else "সাহরির বাকি"
+                    var targetSpecialHour = fajr
+                    var startSpecialHour = maghrib - 24.0
+                    var isIftarCountdownVal = false
 
-                if (currentHourDec > fajr && currentHourDec < maghrib) {
-                    specialLabel = if (isEng) "Iftar Remaining" else "ইফতারের বাকি"
-                    targetSpecialHour = maghrib
-                    startSpecialHour = fajr
-                    isIftarCountdownVal = true
-                } else {
-                    specialLabel = if (isEng) "Sehri Remaining" else "সাহরির বাকি"
-                    targetSpecialHour = if (currentHourDec > maghrib) fajr + 24.0 else fajr
-                    startSpecialHour = if (currentHourDec > maghrib) maghrib else maghrib - 24.0
-                    isIftarCountdownVal = false
-                }
+                    if (currentHourDec > fajr && currentHourDec < maghrib) {
+                        specialLabel = if (isEng) "Iftar Remaining" else "ইফতারের বাকি"
+                        targetSpecialHour = maghrib
+                        startSpecialHour = fajr
+                        isIftarCountdownVal = true
+                    } else {
+                        specialLabel = if (isEng) "Sehri Remaining" else "সাহরির বাকি"
+                        targetSpecialHour = if (currentHourDec > maghrib) fajr + 24.0 else fajr
+                        startSpecialHour = if (currentHourDec > maghrib) maghrib else maghrib - 24.0
+                        isIftarCountdownVal = false
+                    }
 
-                val specDiff = targetSpecialHour - currentHourDec
-                val specTotal = targetSpecialHour - startSpecialHour
-                val specProgress = ((currentHourDec - startSpecialHour) / specTotal).coerceIn(0.0, 1.0).toFloat()
-                val specTimeStr = formatDiff(specDiff, isEng)
+                    val specDiff = targetSpecialHour - currentHourDec
+                    val specTotal = targetSpecialHour - startSpecialHour
+                    val specProgress = ((currentHourDec - startSpecialHour) / specTotal).coerceIn(0.0, 1.0).toFloat()
+                    val specTimeStr = formatDiff(specDiff, isEng)
 
-                // Real-time Countdown Calculations for ALL items requested by user:
-                // 1. Fajr
-                val fajrActive = currentHourDec >= times.fajrHours && currentHourDec < times.sunriseHours
-                val fajrCountdownVal = if (fajrActive) {
-                    val label = if (isEng) "Ends: " else "শেষ: "
-                    label + formatDiff(times.sunriseHours - currentHourDec, isEng)
-                } else {
-                    val label = if (isEng) "Starts: " else "শুরু: "
-                    var d = times.fajrHours - currentHourDec
-                    if (d < 0) d += 24.0
-                    label + formatDiff(d, isEng)
-                }
+                    // Real-time Countdown Calculations for ALL items requested by user:
+                    // 1. Fajr
+                    val fajrActive = currentHourDec >= times.fajrHours && currentHourDec < times.sunriseHours
+                    val fajrCountdownVal = if (fajrActive) {
+                        val label = if (isEng) "Ends: " else "শেষ: "
+                        label + formatDiff(times.sunriseHours - currentHourDec, isEng)
+                    } else {
+                        val label = if (isEng) "Starts: " else "শুরু: "
+                        var d = times.fajrHours - currentHourDec
+                        if (d < 0) d += 24.0
+                        label + formatDiff(d, isEng)
+                    }
 
-                // 2. Dhuhr
-                val dhuhrActive = currentHourDec >= times.dhuhrHours && currentHourDec < times.asrHours
-                val dhuhrCountdownVal = if (dhuhrActive) {
-                    val label = if (isEng) "Ends: " else "শেষ: "
-                    label + formatDiff(times.asrHours - currentHourDec, isEng)
-                } else {
-                    val label = if (isEng) "Starts: " else "শুরু: "
-                    var d = times.dhuhrHours - currentHourDec
-                    if (d < 0) d += 24.0
-                    label + formatDiff(d, isEng)
-                }
+                    // 2. Dhuhr
+                    val dhuhrActive = currentHourDec >= times.dhuhrHours && currentHourDec < times.asrHours
+                    val dhuhrCountdownVal = if (dhuhrActive) {
+                        val label = if (isEng) "Ends: " else "শেষ: "
+                        label + formatDiff(times.asrHours - currentHourDec, isEng)
+                    } else {
+                        val label = if (isEng) "Starts: " else "শুরু: "
+                        var d = times.dhuhrHours - currentHourDec
+                        if (d < 0) d += 24.0
+                        label + formatDiff(d, isEng)
+                    }
 
-                // 3. Asr
-                val asrActive = currentHourDec >= times.asrHours && currentHourDec < times.maghribHours
-                val asrCountdownVal = if (asrActive) {
-                    val label = if (isEng) "Ends: " else "শেষ: "
-                    label + formatDiff(times.maghribHours - currentHourDec, isEng)
-                } else {
-                    val label = if (isEng) "Starts: " else "শুরু: "
-                    var d = times.asrHours - currentHourDec
-                    if (d < 0) d += 24.0
-                    label + formatDiff(d, isEng)
-                }
+                    // 3. Asr
+                    val asrActive = currentHourDec >= times.asrHours && currentHourDec < times.maghribHours
+                    val asrCountdownVal = if (asrActive) {
+                        val label = if (isEng) "Ends: " else "শেষ: "
+                        label + formatDiff(times.maghribHours - currentHourDec, isEng)
+                    } else {
+                        val label = if (isEng) "Starts: " else "শুরু: "
+                        var d = times.asrHours - currentHourDec
+                        if (d < 0) d += 24.0
+                        label + formatDiff(d, isEng)
+                    }
 
-                // 4. Maghrib / Iftar
-                val maghribActive = currentHourDec >= times.maghribHours && currentHourDec < times.ishaHours
-                val maghribCountdownVal = if (maghribActive) {
-                    val label = if (isEng) "Ends: " else "শেষ: "
-                    label + formatDiff(times.ishaHours - currentHourDec, isEng)
-                } else {
-                    val label = if (isEng) "Starts: " else "শুরু: "
-                    var d = times.maghribHours - currentHourDec
-                    if (d < 0) d += 24.0
-                    label + formatDiff(d, isEng)
-                }
+                    // 4. Maghrib / Iftar
+                    val maghribActive = currentHourDec >= times.maghribHours && currentHourDec < times.ishaHours
+                    val maghribCountdownVal = if (maghribActive) {
+                        val label = if (isEng) "Ends: " else "শেষ: "
+                        label + formatDiff(times.ishaHours - currentHourDec, isEng)
+                    } else {
+                        val label = if (isEng) "Starts: " else "শুরু: "
+                        var d = times.maghribHours - currentHourDec
+                        if (d < 0) d += 24.0
+                        label + formatDiff(d, isEng)
+                    }
 
-                // 5. Isha
-                val ishaActive = currentHourDec >= times.ishaHours || currentHourDec < times.fajrHours
-                val ishaCountdownVal = if (ishaActive) {
-                    val tomorrowFajr = if (currentHourDec >= times.ishaHours) times.fajrHours + 24.0 else times.fajrHours
-                    val label = if (isEng) "Ends: " else "শেষ: "
-                    label + formatDiff(tomorrowFajr - currentHourDec, isEng)
-                } else {
-                    val label = if (isEng) "Starts: " else "শুরু: "
-                    var d = times.ishaHours - currentHourDec
-                    if (d < 0) d += 24.0
-                    label + formatDiff(d, isEng)
-                }
+                    // 5. Isha
+                    val ishaActive = currentHourDec >= times.ishaHours || currentHourDec < times.fajrHours
+                    val ishaCountdownVal = if (ishaActive) {
+                        val tomorrowFajr = if (currentHourDec >= times.ishaHours) times.fajrHours + 24.0 else times.fajrHours
+                        val label = if (isEng) "Ends: " else "শেষ: "
+                        label + formatDiff(tomorrowFajr - currentHourDec, isEng)
+                    } else {
+                        val label = if (isEng) "Starts: " else "শুরু: "
+                        var d = times.ishaHours - currentHourDec
+                        if (d < 0) d += 24.0
+                        label + formatDiff(d, isEng)
+                    }
 
-                // 6. Sehri Time (Starts at Sunset, ends at Fajr)
-                var sehriDiff = times.fajrHours - currentHourDec
-                if (sehriDiff < 0) sehriDiff += 24.0
-                val sehriCountdownVal = formatDiff(sehriDiff, isEng)
+                    // 6. Sehri Time (Starts at Sunset, ends at Fajr)
+                    var sehriDiff = times.fajrHours - currentHourDec
+                    if (sehriDiff < 0) sehriDiff += 24.0
+                    val sehriCountdownVal = formatDiff(sehriDiff, isEng)
 
-                // 7. Iftar Time (Starts at Maghrib)
-                var iftarDiff = times.maghribHours - currentHourDec
-                if (iftarDiff < 0) iftarDiff += 24.0
-                val iftarCountdownVal = formatDiff(iftarDiff, isEng)
+                    // 7. Iftar Time (Starts at Maghrib)
+                    var iftarDiff = times.maghribHours - currentHourDec
+                    if (iftarDiff < 0) iftarDiff += 24.0
+                    val iftarCountdownVal = formatDiff(iftarDiff, isEng)
 
-                // 8. Sunrise Countdown
-                var sunriseDiff = times.sunriseHours - currentHourDec
-                if (sunriseDiff < 0) sunriseDiff += 24.0
-                val sunriseCountdownVal = formatDiff(sunriseDiff, isEng)
+                    // 8. Sunrise Countdown
+                    var sunriseDiff = times.sunriseHours - currentHourDec
+                    if (sunriseDiff < 0) sunriseDiff += 24.0
+                    val sunriseCountdownVal = formatDiff(sunriseDiff, isEng)
 
-                // 9. Sunset Countdown
-                var sunsetDiff = times.maghribHours - currentHourDec
-                if (sunsetDiff < 0) sunsetDiff += 24.0
-                val sunsetCountdownVal = formatDiff(sunsetDiff, isEng)
+                    // 9. Sunset Countdown
+                    var sunsetDiff = times.maghribHours - currentHourDec
+                    if (sunsetDiff < 0) sunsetDiff += 24.0
+                    val sunsetCountdownVal = formatDiff(sunsetDiff, isEng)
 
-                // 10. Forbidden Sunrise Period (Sunrise to Sunrise + 15 mins)
-                val fSunriseStart = times.sunriseHours
-                val fSunriseEnd = times.sunriseHours + 15.0 / 60.0
-                val fSunriseActive = currentHourDec >= fSunriseStart && currentHourDec < fSunriseEnd
-                val fSunriseCountdownVal = if (fSunriseActive) {
-                    val label = if (isEng) "Ends in " else "শেষ হতে "
-                    label + formatDiff(fSunriseEnd - currentHourDec, isEng)
-                } else {
-                    val label = if (isEng) "Starts in " else "শুরু হতে "
-                    var d = fSunriseStart - currentHourDec
-                    if (d < 0) d += 24.0
-                    label + formatDiff(d, isEng)
-                }
+                    // 10. Forbidden Sunrise Period (Sunrise to Sunrise + 15 mins)
+                    val fSunriseStart = times.sunriseHours
+                    val fSunriseEnd = times.sunriseHours + 15.0 / 60.0
+                    val fSunriseActive = currentHourDec >= fSunriseStart && currentHourDec < fSunriseEnd
+                    val fSunriseCountdownVal = if (fSunriseActive) {
+                        val label = if (isEng) "Ends in " else "শেষ হতে "
+                        label + formatDiff(fSunriseEnd - currentHourDec, isEng)
+                    } else {
+                        val label = if (isEng) "Starts in " else "শুরু হতে "
+                        var d = fSunriseStart - currentHourDec
+                        if (d < 0) d += 24.0
+                        label + formatDiff(d, isEng)
+                    }
 
-                // 11. Forbidden Noon Period (Dhuhr - 15 mins to Dhuhr)
-                val fNoonStart = times.dhuhrHours - 15.0 / 60.0
-                val fNoonEnd = times.dhuhrHours
-                val fNoonActive = currentHourDec >= fNoonStart && currentHourDec < fNoonEnd
-                val fNoonCountdownVal = if (fNoonActive) {
-                    val label = if (isEng) "Ends in " else "শেষ হতে "
-                    label + formatDiff(fNoonEnd - currentHourDec, isEng)
-                } else {
-                    val label = if (isEng) "Starts in " else "শুরু হতে "
-                    var d = fNoonStart - currentHourDec
-                    if (d < 0) d += 24.0
-                    label + formatDiff(d, isEng)
-                }
+                    // 11. Forbidden Noon Period (Dhuhr - 15 mins to Dhuhr)
+                    val fNoonStart = times.dhuhrHours - 15.0 / 60.0
+                    val fNoonEnd = times.dhuhrHours
+                    val fNoonActive = currentHourDec >= fNoonStart && currentHourDec < fNoonEnd
+                    val fNoonCountdownVal = if (fNoonActive) {
+                        val label = if (isEng) "Ends in " else "শেষ হতে "
+                        label + formatDiff(fNoonEnd - currentHourDec, isEng)
+                    } else {
+                        val label = if (isEng) "Starts in " else "শুরু হতে "
+                        var d = fNoonStart - currentHourDec
+                        if (d < 0) d += 24.0
+                        label + formatDiff(d, isEng)
+                    }
 
-                // 12. Forbidden Sunset Period (Maghrib - 15 mins to Maghrib)
-                val fSunsetStart = times.maghribHours - 15.0 / 60.0
-                val fSunsetEnd = times.maghribHours
-                val fSunsetActive = currentHourDec >= fSunsetStart && currentHourDec < fSunsetEnd
-                val fSunsetCountdownVal = if (fSunsetActive) {
-                    val label = if (isEng) "Ends in " else "শেষ হতে "
-                    label + formatDiff(fSunsetEnd - currentHourDec, isEng)
-                } else {
-                    val label = if (isEng) "Starts in " else "শুরু হতে "
-                    var d = fSunsetStart - currentHourDec
-                    if (d < 0) d += 24.0
-                    label + formatDiff(d, isEng)
-                }
+                    // 12. Forbidden Sunset Period (Maghrib - 15 mins to Maghrib)
+                    val fSunsetStart = times.maghribHours - 15.0 / 60.0
+                    val fSunsetEnd = times.maghribHours
+                    val fSunsetActive = currentHourDec >= fSunsetStart && currentHourDec < fSunsetEnd
+                    val fSunsetCountdownVal = if (fSunsetActive) {
+                        val label = if (isEng) "Ends in " else "শেষ হতে "
+                        label + formatDiff(fSunsetEnd - currentHourDec, isEng)
+                    } else {
+                        val label = if (isEng) "Starts in " else "শুরু হতে "
+                        var d = fSunsetStart - currentHourDec
+                        if (d < 0) d += 24.0
+                        label + formatDiff(d, isEng)
+                    }
 
-                _state.update { 
-                    it.copy(
-                        currentHourDecimal = currentHourDec,
-                        currentPrayerName = currentName, 
-                        currentPrayerNameBen = currentNameBen,
-                        nextPrayerName = nextName,
-                        nextPrayerNameBen = nextNameBen,
-                        rotatingNames = rotating,
-                        nextPrayerRemaining = nextPrayerRemainingVal,
-                        timerProgress = progress,
-                        specialCountdownLabel = specialLabel,
-                        specialCountdownTime = specTimeStr,
-                        specialCountdownProgress = specProgress,
-                        fajrCountdown = fajrCountdownVal,
-                        dhuhrCountdown = dhuhrCountdownVal,
-                        asrCountdown = asrCountdownVal,
-                        maghribCountdown = maghribCountdownVal,
-                        ishaCountdown = ishaCountdownVal,
-                        sehriCountdown = sehriCountdownVal,
-                        iftarCountdown = iftarCountdownVal,
-                        sunriseCountdown = sunriseCountdownVal,
-                        sunsetCountdown = sunsetCountdownVal,
-                        forbiddenSunriseCountdown = fSunriseCountdownVal,
-                        forbiddenNoonCountdown = fNoonCountdownVal,
-                        forbiddenSunsetCountdown = fSunsetCountdownVal,
-                        isIftarCountdown = isIftarCountdownVal
-                    )
+                    _state.update { 
+                        it.copy(
+                            currentHourDecimal = currentHourDec,
+                            currentPrayerName = currentName, 
+                            currentPrayerNameBen = currentNameBen,
+                            nextPrayerName = nextName,
+                            nextPrayerNameBen = nextNameBen,
+                            rotatingNames = rotating,
+                            nextPrayerRemaining = nextPrayerRemainingVal,
+                            timerProgress = progress,
+                            specialCountdownLabel = specialLabel,
+                            specialCountdownTime = specTimeStr,
+                            specialCountdownProgress = specProgress,
+                            fajrCountdown = fajrCountdownVal,
+                            dhuhrCountdown = dhuhrCountdownVal,
+                            asrCountdown = asrCountdownVal,
+                            maghribCountdown = maghribCountdownVal,
+                            ishaCountdown = ishaCountdownVal,
+                            sehriCountdown = sehriCountdownVal,
+                            iftarCountdown = iftarCountdownVal,
+                            sunriseCountdown = sunriseCountdownVal,
+                            sunsetCountdown = sunsetCountdownVal,
+                            forbiddenSunriseCountdown = fSunriseCountdownVal,
+                            forbiddenNoonCountdown = fNoonCountdownVal,
+                            forbiddenSunsetCountdown = fSunsetCountdownVal,
+                            isIftarCountdown = isIftarCountdownVal
+                        )
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("PrayerViewModel", "Error in countdown loop", e)
                 }
                 delay(1000)
             }
