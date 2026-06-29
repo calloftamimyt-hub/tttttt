@@ -25,9 +25,10 @@ fun SalatTimesCard(state: ViewState) {
 
         // Formatting Helpers
         val formatTime = { h: Double ->
-            val totalMin = (h * 60).toInt()
-            val hour = (totalMin / 60) % 24
-            val min = totalMin % 60
+            val totalSeconds = (h * 3600).toInt()
+            val normalizedSeconds = if (totalSeconds < 0) totalSeconds + 24 * 3600 else totalSeconds
+            val hour = (normalizedSeconds / 3600) % 24
+            val min = (normalizedSeconds / 60) % 60
             val p = if (hour >= 12) (if(isEng) "PM" else "PM") else (if(isEng) "AM" else "AM")
             val displayHour = if (hour > 12) hour - 12 else if (hour == 0) 12 else hour
             String.format("%02d:%02d %s", displayHour, min, p).toBengali()
@@ -36,22 +37,21 @@ fun SalatTimesCard(state: ViewState) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = 16.dp),
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
-            border = null,
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(IntrinsicSize.Min) // This ensures the vertical divider takes full height
+                    .height(IntrinsicSize.Min) 
             ) {
                 // Left Column: Nafal
-                Column(modifier = Modifier.weight(1f).padding(top = 16.dp, bottom = 16.dp, start = 12.dp, end = 8.dp)) {
+                Column(modifier = Modifier.weight(1f).padding(top = 12.dp, bottom = 12.dp, start = 10.dp, end = 6.dp)) {
                     Text(
-                        text = if (isEng) "Nafl Salat Times" else "নফল সালাতের ওয়াক্ত",
-                        fontSize = 13.sp,
+                        text = if (isEng) "Nafil Salat" else "নফল সালাত",
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -59,39 +59,39 @@ fun SalatTimesCard(state: ViewState) {
                     
                     OrnamentalDivider()
                     
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(2.dp))
                     
                     SalatRowCompact(
                         icon = Icons.Outlined.WbTwilight,
-                        name = if (isEng) "Tahajjud" else "তাহাজ্জুদ সালাত",
+                        name = if (isEng) "Tahajjud" else "তাহাজ্জুদ",
                         time = formatTime(times.fajrHours - 1.25),
                         isActive = false
                     )
                     CustomHorizontalDivider()
                     SalatRowCompact(
                         icon = Icons.Outlined.MenuBook,
-                        name = if (isEng) "Ishraq" else "ইশরাক সালাত",
+                        name = if (isEng) "Ishraq" else "ইশরাক",
                         time = formatTime(times.sunriseHours + 0.25),
                         isActive = state.currentPrayerName == "Duha"
                     )
                     CustomHorizontalDivider()
                     SalatRowCompact(
                         icon = Icons.Outlined.WbSunny,
-                        name = if (isEng) "Chasht" else "চাশত সালাত",
+                        name = if (isEng) "Chasht" else "চাশত",
                         time = formatTime(times.sunriseHours + 1.5),
                         isActive = state.currentPrayerName == "Duha"
                     )
                     CustomHorizontalDivider()
                     SalatRowCompact(
                         icon = Icons.Outlined.WbTwilight,
-                        name = if (isEng) "Awwabin" else "আওয়াবীন সালাত",
+                        name = if (isEng) "Awwabin" else "আওয়াবীন",
                         time = formatTime(times.maghribHours + 0.25),
                         isActive = false
                     )
                     CustomHorizontalDivider()
                     SalatRowCompact(
                         icon = Icons.Outlined.ModeNight,
-                        name = if (isEng) "Tahajjud (Night)" else "তাহাজ্জুদ সালাত (রাত)",
+                        name = if (isEng) "Tahajjud (Night)" else "তাহাজ্জুদ (রাত)",
                         time = formatTime(times.ishaHours + 1.5),
                         isActive = false
                     )
@@ -100,17 +100,17 @@ fun SalatTimesCard(state: ViewState) {
                 // Vertical Divider
                 Box(
                     modifier = Modifier
-                        .width(1.dp)
+                        .width(0.8.dp)
                         .fillMaxHeight()
-                        .padding(vertical = 12.dp)
-                        .background(Color(0xFFE0E0E0))
+                        .padding(vertical = 8.dp)
+                        .background(Color(0xFFEEEEEE))
                 )
 
                 // Right Column: Farz
-                Column(modifier = Modifier.weight(1f).padding(top = 16.dp, bottom = 16.dp, start = 8.dp, end = 12.dp)) {
+                Column(modifier = Modifier.weight(1f).padding(top = 12.dp, bottom = 12.dp, start = 6.dp, end = 10.dp)) {
                     Text(
-                        text = if (isEng) "5 Waqt Prayers" else "পাঁচ ওয়াক্তের নামাজের সময়",
-                        fontSize = 13.sp,
+                        text = if (isEng) "Fard Prayers" else "ফরজ নামাজ",
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -118,7 +118,7 @@ fun SalatTimesCard(state: ViewState) {
                     
                     OrnamentalDivider()
                     
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(2.dp))
                     
                     SalatRowCompact(
                         icon = Icons.Outlined.WbTwilight,
@@ -165,65 +165,57 @@ fun OrnamentalDivider() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        Box(modifier = Modifier.weight(1f).height(1.dp).background(Color(0xFFE0E0E0)))
-        Icon(
-            imageVector = Icons.Outlined.Brightness1,
-            contentDescription = null,
-            tint = Color(0xFFE0E0E0),
-            modifier = Modifier.size(6.dp).padding(horizontal = 2.dp)
-        )
-        Box(modifier = Modifier.weight(1f).height(1.dp).background(Color(0xFFE0E0E0)))
+        Box(modifier = Modifier.weight(1f).height(0.5.dp).background(Color(0xFFEEEEEE)))
     }
 }
 
 @Composable
 fun CustomHorizontalDivider() {
     HorizontalDivider(
-        color = Color(0xFFE0E0E0),
-        thickness = 1.dp,
-        modifier = Modifier.padding(vertical = 4.dp)
+        color = Color(0xFFF5F5F5),
+        thickness = 0.5.dp,
+        modifier = Modifier.padding(vertical = 2.dp)
     )
 }
 
 @Composable
 fun SalatRowCompact(icon: ImageVector, name: String, time: String, isActive: Boolean) {
-    val textColor = if (isActive) Color(0xFF10B982) else Color.Black
-    val fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.Medium
-    val bgColor = if (isActive) Color(0xFF10B982).copy(alpha = 0.1f) else Color.Transparent
+    val textColor = if (isActive) Color(0xFF10B982) else Color(0xFF333333)
+    val fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal
+    val bgColor = if (isActive) Color(0xFF10B982).copy(alpha = 0.08f) else Color.Transparent
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(bgColor, shape = RoundedCornerShape(4.dp))
-            .padding(vertical = 2.dp, horizontal = 2.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(vertical = 3.dp, horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = textColor,
-                modifier = Modifier.size(16.dp)
-            )
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(
-                text = name,
-                fontSize = 11.sp,
-                fontWeight = fontWeight,
-                color = textColor,
-                maxLines = 1
-            )
-        }
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = textColor,
+            modifier = Modifier.size(13.dp)
+        )
+        Spacer(modifier = Modifier.width(5.dp))
+        Text(
+            text = name,
+            fontSize = 10.5.sp,
+            fontWeight = fontWeight,
+            color = textColor,
+            maxLines = 1,
+            modifier = Modifier.weight(1f)
+        )
         Text(
             text = time,
-            fontSize = 11.sp,
+            fontSize = 10.5.sp,
             fontWeight = fontWeight,
-            color = textColor
+            color = textColor,
+            maxLines = 1
         )
     }
 }
