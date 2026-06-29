@@ -68,9 +68,9 @@ android {
   buildTypes {
     release {
       // Enables code shrinking, obfuscation, and optimization.
-      isMinifyEnabled = true
+      isMinifyEnabled = false
       // Enables resource shrinking, which is performed by the Android Gradle plugin.
-      isShrinkResources = true
+      isShrinkResources = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("releaseConfig")
       
@@ -210,6 +210,9 @@ tasks.register<Copy>("copyApkToWorkspace") {
     from("${layout.buildDirectory.get()}/outputs/apk/debug")
     include("app-debug.apk")
     into("${rootProject.projectDir}/apks")
+    doLast {
+        println("APK copied to apks/ folder")
+    }
 }
 
 tasks.register<Copy>("copyAabToWorkspace") {
@@ -217,5 +220,13 @@ tasks.register<Copy>("copyAabToWorkspace") {
     from("${layout.buildDirectory.get()}/outputs/bundle/release")
     include("app-release.aab")
     into("${rootProject.projectDir}/apks")
+    doLast {
+        println("AAB copied to apks/ folder")
+    }
+}
+
+project.afterEvaluate {
+    tasks.findByName("assembleDebug")?.finalizedBy("copyApkToWorkspace")
+    tasks.findByName("bundleRelease")?.finalizedBy("copyAabToWorkspace")
 }
 
