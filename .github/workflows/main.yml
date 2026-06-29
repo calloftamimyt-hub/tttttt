@@ -17,8 +17,13 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build Unsigned APK
-        run: gradle assembleDebug -x validateSigningDebug --stacktrace
+      - name: Generate Dummy Keystore
+        run: |
+          keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+        # এটি গ্র্যাডলের খোঁজা সেই 'debug.keystore' ফাইলটি বিল্ডের ঠিক আগে তৈরি করে দেবে
+
+      - name: Build APK
+        run: gradle assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
