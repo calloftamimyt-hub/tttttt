@@ -13,7 +13,7 @@ plugins {
 
 android {
   namespace = "com.example"
-  compileSdk = 35
+  compileSdk = 34
 
   // Decode the debug keystore from base64 if it does not exist
   val keystoreFile = file("${rootDir}/debug.keystore")
@@ -32,7 +32,7 @@ android {
   defaultConfig {
     applicationId = "com.aistudio.halalcircle.vqyptl"
     minSdk = 23
-    targetSdk = 36
+    targetSdk = 34
     // Increment versionCode for each release. versionName follows semver.
     versionCode = 12
     versionName = "1.9.0"
@@ -207,20 +207,15 @@ tasks.named("preBuild") {
 
 tasks.register<Copy>("copyApkToWorkspace") {
     outputs.upToDateWhen { false }
-    from(layout.buildDirectory.dir("outputs/apk/debug"))
+    from("${layout.buildDirectory.get()}/outputs/apk/debug")
     include("app-debug.apk")
-    into(rootProject.layout.projectDirectory.dir("apks"))
+    into("${rootProject.projectDir}/apks")
 }
 
 tasks.register<Copy>("copyAabToWorkspace") {
     outputs.upToDateWhen { false }
-    from(layout.buildDirectory.dir("outputs/bundle/release"))
+    from("${layout.buildDirectory.get()}/outputs/bundle/release")
     include("app-release.aab")
-    into(rootProject.layout.projectDirectory.dir("apks"))
-}
-
-project.afterEvaluate {
-    tasks.findByName("assembleDebug")?.finalizedBy("bundleRelease", "copyApkToWorkspace", "copyAabToWorkspace")
-    tasks.findByName("copyAabToWorkspace")?.mustRunAfter("bundleRelease")
+    into("${rootProject.projectDir}/apks")
 }
 
