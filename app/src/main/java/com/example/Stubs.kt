@@ -18,7 +18,6 @@ operator fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T = t
 fun <T> StateFlow<T>.collectAsState(): State<T> = mutableStateOf(this.value)
 
 // Stubs for missing UI components
-@Composable fun TrackerScreen(onBack: () -> Unit = {}) {}
 @Composable fun TasbihScreen(onBack: () -> Unit = {}) {}
 @Composable fun SavedDuasScreen(onBack: () -> Unit = {}) {}
 @Composable fun SavedHadithsScreen(onBack: () -> Unit = {}) {}

@@ -497,7 +497,7 @@ class MainActivity : ComponentActivity() {
                                     } else if (selectedTab == "hadith") {
                                         HadithScreen(onBack = { selectedTab = "tools" })
                                     } else if (selectedTab == "tracker") {
-                                        TrackerScreen()
+                                        TrackerScreen(onBack = { selectedTab = "home" })
                                     } else if (selectedTab == "tools") {
                                         ToolsScreen(
                                             onNavigateToTracker = { selectedTab = "tracker" },
