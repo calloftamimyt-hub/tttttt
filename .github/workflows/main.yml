@@ -1,7 +1,7 @@
 name: Android CI
 
 on:
-  workflow_dispatch: # এর মাধ্যমে আপনি যখন ইচ্ছা তখন বাটনে চাপ দিয়ে অ্যাপ বিল্ড করতে পারবেন
+  workflow_dispatch:
 
 jobs:
   build:
@@ -16,17 +16,24 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
 
-    - name: Change wrapper permissions
-      run: chmod +x gradlew
-      continue-on-error: true # যদি gradlew ফাইল না থাকে তাহলেও যেন বিল্ড আটকে না যায়
+    - name: Make Gradle Executable
+      run: |
+        chmod +x gradlew
+        ./gradlew --version
+      continue-on-error: true
 
-    - name: Build with Gradle
+    - name: Build with Gradle Wrapper
+      run: ./gradlew assembleDebug --stacktrace
+      continue-on-error: true
+
+    - name: Build with System Gradle (Fallback)
       run: gradle assembleDebug --stacktrace
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: my-android-app
-        path: app/build/outputs/apk/debug/*.apk
+        path: |
+          **/build/outputs/apk/debug/*.apk
+          **/build/outputs/bundle/release/*.aab
