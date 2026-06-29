@@ -1233,9 +1233,19 @@ fun HomeScreen(
                 isLarge = true
             )
             Spacer(modifier = Modifier.weight(1f))
+            val subInfoTitle = if (state.isIftarCountdown) {
+                if (GlobalLanguage.isEnglish) "Iftar Time" else "ইফতারের সময়"
+            } else {
+                if (GlobalLanguage.isEnglish) "Sehri Last Time" else "সাহরির শেষ সময়"
+            }
+            val subInfoTime = if (state.isIftarCountdown) {
+                state.prayerTimes?.maghrib?.toBengali() ?: "--:--"
+            } else {
+                state.prayerTimes?.fajr?.toBengali() ?: "--:--"
+            }
             SubInfoItem(
-                title = if (GlobalLanguage.isEnglish) "Sehri Last Time" else "সাহরির শেষ সময়", 
-                time = state.prayerTimes?.fajr?.toBengali() ?: "--:--"
+                title = subInfoTitle, 
+                time = subInfoTime
             )
         }
 

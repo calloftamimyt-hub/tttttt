@@ -100,7 +100,8 @@ data class ViewState(
     val sunsetCountdown: String = "",
     val forbiddenSunriseCountdown: String = "",
     val forbiddenNoonCountdown: String = "",
-    val forbiddenSunsetCountdown: String = ""
+    val forbiddenSunsetCountdown: String = "",
+    val isIftarCountdown: Boolean = false
 )
 
 class PrayerViewModel : ViewModel() {
@@ -550,15 +551,18 @@ class PrayerViewModel : ViewModel() {
                 var specialLabel = if (isEng) "Sehri Remaining" else "সাহরির বাকি"
                 var targetSpecialHour = fajr
                 var startSpecialHour = maghrib - 24.0
+                var isIftarCountdownVal = false
 
                 if (currentHourDec > fajr && currentHourDec < maghrib) {
                     specialLabel = if (isEng) "Iftar Remaining" else "ইফতারের বাকি"
                     targetSpecialHour = maghrib
                     startSpecialHour = fajr
+                    isIftarCountdownVal = true
                 } else {
                     specialLabel = if (isEng) "Sehri Remaining" else "সাহরির বাকি"
                     targetSpecialHour = if (currentHourDec > maghrib) fajr + 24.0 else fajr
                     startSpecialHour = if (currentHourDec > maghrib) maghrib else maghrib - 24.0
+                    isIftarCountdownVal = false
                 }
 
                 val specDiff = targetSpecialHour - currentHourDec
@@ -714,7 +718,8 @@ class PrayerViewModel : ViewModel() {
                         sunsetCountdown = sunsetCountdownVal,
                         forbiddenSunriseCountdown = fSunriseCountdownVal,
                         forbiddenNoonCountdown = fNoonCountdownVal,
-                        forbiddenSunsetCountdown = fSunsetCountdownVal
+                        forbiddenSunsetCountdown = fSunsetCountdownVal,
+                        isIftarCountdown = isIftarCountdownVal
                     )
                 }
                 delay(1000)
