@@ -165,7 +165,15 @@ tasks.register<Copy>("copyApkToWorkspace") {
     into(rootProject.layout.projectDirectory.dir("apks"))
 }
 
+tasks.register<Copy>("copyAabToWorkspace") {
+    outputs.upToDateWhen { false }
+    from(layout.buildDirectory.dir("outputs/bundle/release"))
+    include("app-release.aab")
+    into(rootProject.layout.projectDirectory.dir("apks"))
+}
+
 project.afterEvaluate {
-    tasks.findByName("assembleDebug")?.finalizedBy("copyApkToWorkspace")
+    tasks.findByName("assembleDebug")?.finalizedBy("bundleRelease", "copyApkToWorkspace", "copyAabToWorkspace")
+    tasks.findByName("copyAabToWorkspace")?.mustRunAfter("bundleRelease")
 }
 

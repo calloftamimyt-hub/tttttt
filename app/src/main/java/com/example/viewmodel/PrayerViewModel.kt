@@ -82,6 +82,8 @@ data class ViewState(
     val forbiddenNoonEnd: String = "০০:০০",
     val forbiddenSunset: String = "০০:০০",
     val forbiddenSunsetEnd: String = "০০:০০",
+    val currentHourDecimal: Double = 0.0,
+    val isRainy: Boolean = false,
     val currentPrayerName: String = "",
     val currentPrayerNameBen: String = "",
     val rotatingNames: List<String> = emptyList(),
@@ -576,6 +578,7 @@ class PrayerViewModel : ViewModel() {
                 val specTimeStr = String.format("%02d:%02d:%02d", sh, sm, ss).toBengali()
 
                 _state.update { it.copy(
+                    currentHourDecimal = currentHourDec,
                     nextPrayerRemaining = timeStr,
                     timerProgress = progress,
                     specialCountdownLabel = specialLabel,

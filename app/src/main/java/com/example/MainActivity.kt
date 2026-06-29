@@ -814,6 +814,168 @@ fun AppBottomNavigation(selectedTab: String, isDark: Boolean, onTabSelected: (St
 }
 
 @Composable
+fun SkyAnimationCard(state: com.example.viewmodel.ViewState) {
+    val prayerTimes = state.prayerTimes ?: return
+    val currentHour = state.currentHourDecimal
+    val sunrise = prayerTimes.sunriseHours
+    val sunset = prayerTimes.maghribHours
+    
+    val isDay = currentHour in sunrise..sunset
+    
+    val progress = if (isDay) {
+        ((currentHour - sunrise) / (sunset - sunrise)).coerceIn(0.0, 1.0).toFloat()
+    } else {
+        // Night progress
+        if (currentHour > sunset) {
+            ((currentHour - sunset) / (24.0 - sunset + sunrise)).coerceIn(0.0, 1.0).toFloat()
+        } else {
+            ((currentHour + (24.0 - sunset)) / (24.0 - sunset + sunrise)).coerceIn(0.0, 1.0).toFloat()
+        }
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(140.dp)
+                .background(
+                    brush = if (isDay) {
+                        if (state.isRainy) {
+                            Brush.verticalGradient(listOf(Color(0xFF94A3B8), Color(0xFFF1F5F9)))
+                        } else {
+                            Brush.verticalGradient(listOf(Color(0xFFBAE6FD), Color(0xFFF0F9FF)))
+                        }
+                    } else {
+                        Brush.verticalGradient(listOf(Color(0xFF1E293B), Color(0xFF334155)))
+                    }
+                )
+                .padding(16.dp)
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val width = size.width
+                val height = size.height
+                val arcHeight = height * 0.8f
+                val arcWidth = width * 0.8f
+                val startX = (width - arcWidth) / 2
+                val topY = height * 0.2f
+                val bottomY = height * 0.9f
+
+                // Draw Path Arc
+                val path = androidx.compose.ui.graphics.Path().apply {
+                    moveTo(startX, bottomY)
+                    quadraticTo(width / 2, -topY, width - startX, bottomY)
+                }
+                
+                drawPath(
+                    path = path,
+                    color = if (isDay) Color.White.copy(alpha = 0.5f) else Color.White.copy(alpha = 0.2f),
+                    style = androidx.compose.ui.graphics.drawscope.Stroke(
+                        width = 2.dp.toPx(),
+                        pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+                    )
+                )
+
+                // Calculate Position on Path
+                // Simple quadratic Bezier formula: (1-t)^2 * P0 + 2(1-t)t * P1 + t^2 * P2
+                val t = progress
+                val p0x = startX
+                val p0y = bottomY
+                val p1x = width / 2
+                val p1y = -topY
+                val p2x = width - startX
+                val p2y = bottomY
+
+                val sunX = (1 - t) * (1 - t) * p0x + 2 * (1 - t) * t * p1x + t * t * p2x
+                val sunY = (1 - t) * (1 - t) * p0y + 2 * (1 - t) * t * p1y + t * t * p2y
+
+                // Draw Sun or Moon
+                if (isDay) {
+                    if (state.isRainy) {
+                        // Gray Sun/Cloud
+                        drawCircle(
+                            color = Color.DarkGray,
+                            radius = 12.dp.toPx(),
+                            center = androidx.compose.ui.geometry.Offset(sunX, sunY)
+                        )
+                        // Add some "clouds"
+                        drawCircle(
+                            color = Color.LightGray,
+                            radius = 10.dp.toPx(),
+                            center = androidx.compose.ui.geometry.Offset(sunX - 8.dp.toPx(), sunY + 4.dp.toPx())
+                        )
+                    } else {
+                        // Bright Sun
+                        drawCircle(
+                            brush = Brush.radialGradient(
+                                colors = listOf(Color(0xFFFDE047), Color(0xFFF97316)),
+                                center = androidx.compose.ui.geometry.Offset(sunX, sunY),
+                                radius = 15.dp.toPx()
+                            ),
+                            radius = 15.dp.toPx(),
+                            center = androidx.compose.ui.geometry.Offset(sunX, sunY)
+                        )
+                    }
+                } else {
+                    // Moon
+                    drawCircle(
+                        color = Color(0xFFF1F5F9),
+                        radius = 12.dp.toPx(),
+                        center = androidx.compose.ui.geometry.Offset(sunX, sunY)
+                    )
+                    // Simple crescent effect
+                    drawCircle(
+                        color = Color(0xFF1E293B),
+                        radius = 10.dp.toPx(),
+                        center = androidx.compose.ui.geometry.Offset(sunX - 4.dp.toPx(), sunY - 2.dp.toPx())
+                    )
+                }
+            }
+            
+            // Labels for Sunrise and Sunset
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        if (GlobalLanguage.isEnglish) "Sunrise" else "সূর্যোদয়",
+                        color = if (isDay) TextGray else Color.White.copy(alpha = 0.7f),
+                        fontSize = 10.sp
+                    )
+                    Text(
+                        prayerTimes.sunrise.toBengali(),
+                        color = if (isDay) PrimaryGreen else Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp
+                    )
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        if (GlobalLanguage.isEnglish) "Sunset" else "সূর্যাস্ত",
+                        color = if (isDay) TextGray else Color.White.copy(alpha = 0.7f),
+                        fontSize = 10.sp
+                    )
+                    Text(
+                        prayerTimes.maghrib.toBengali(),
+                        color = if (isDay) PrimaryGreen else Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun HomeScreen(
     state: com.example.viewmodel.ViewState, 
     onToggleAlarm: (String) -> Unit, 
@@ -854,19 +1016,60 @@ fun HomeScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Top
         ) {
-            // Header Title
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .clickable { onNavigateToLocation() }
-                    .padding(top = 10.dp)
+            // Header Title and Location
+            Column(
+                modifier = Modifier.padding(top = 10.dp)
             ) {
-                Text(
-                    text = "Halal Circle",
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 22.sp,
-                    color = PrimaryGreen
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clickable { onNavigateToLocation() }
+                ) {
+                    Text(
+                        text = "Halal Circle",
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 22.sp,
+                        color = PrimaryGreen
+                    )
+                }
+                
+                // Location Box: Thinner and positioned beautifully below the app name
+                Box(
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(Color.White.copy(alpha = 0.6f))
+                        .border(
+                            border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.25f)),
+                            shape = RoundedCornerShape(50)
+                        )
+                        .clickable { onNavigateToLocation() }
+                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.LocationOn,
+                            contentDescription = "Location",
+                            tint = PrimaryGreen,
+                            modifier = Modifier.size(13.dp)
+                        )
+                        Text(
+                            text = state.locationName,
+                            fontWeight = FontWeight.Bold,
+                            color = TextDark,
+                            fontSize = 11.sp
+                        )
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = "Expand Location",
+                            tint = TextDark,
+                            modifier = Modifier.size(13.dp)
+                        )
+                    }
+                }
             }
             
             Column(horizontalAlignment = Alignment.End) {
@@ -964,47 +1167,12 @@ fun HomeScreen(
             }
         }
 
-        // Location Box: Thinner and positioned beautifully below the location line
-        Box(
-            modifier = Modifier
-                .padding(start = 20.dp, top = 2.dp, bottom = 12.dp)
-                .clip(RoundedCornerShape(50))
-                .background(Color.White.copy(alpha = 0.6f))
-                .border(
-                    border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.25f)),
-                    shape = RoundedCornerShape(50)
-                )
-                .clickable { onNavigateToLocation() }
-                .padding(horizontal = 10.dp, vertical = 4.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.LocationOn,
-                    contentDescription = "Location",
-                    tint = PrimaryGreen,
-                    modifier = Modifier.size(13.dp)
-                )
-                Text(
-                    text = state.locationName,
-                    fontWeight = FontWeight.Bold,
-                    color = TextDark,
-                    fontSize = 11.sp
-                )
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowDown,
-                    contentDescription = "Expand Location",
-                    tint = TextDark,
-                    modifier = Modifier.size(13.dp)
-                )
-            }
-        }
+        // Sky Animation Section
+        SkyAnimationCard(state)
 
         // Hero Section
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp).clickable(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, top = 8.dp, bottom = 12.dp).clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ) { onNavigateToPrayerDetails() },
