@@ -48,14 +48,24 @@ android {
       enableV1Signing = true
       enableV2Signing = true
     }
+    create("releaseConfig") {
+      val keystoreFile = file("${rootDir}/release.keystore")
+      storeFile = keystoreFile
+      storePassword = "halalcircle"
+      keyAlias = "release"
+      keyPassword = "halalcircle"
+      enableV1Signing = true
+      enableV2Signing = true
+    }
   }
 
   buildTypes {
     release {
       isCrunchPngs = false
-      isMinifyEnabled = false
+      isMinifyEnabled = true
+      isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-      signingConfig = signingConfigs.getByName("debugConfig")
+      signingConfig = signingConfigs.getByName("releaseConfig")
     }
     debug {
       signingConfig = signingConfigs.getByName("debugConfig")
@@ -156,6 +166,30 @@ dependencies {
   debugImplementation(libs.androidx.compose.ui.tooling)
   "ksp"(libs.androidx.room.compiler)
   "ksp"(libs.moshi.kotlin.codegen)
+}
+
+tasks.register("generateReleaseKeystore") {
+    val keystoreFile = file("${rootDir}/release.keystore")
+    doLast {
+        if (!keystoreFile.exists()) {
+            ant.withGroovyBuilder {
+                "genkey"(
+                    "keystore" to keystoreFile.absolutePath,
+                    "alias" to "release",
+                    "storepass" to "halalcircle",
+                    "keypass" to "halalcircle",
+                    "dname" to "CN=Halal Circle, OU=Halal Circle, O=Halal Circle, C=BD",
+                    "validity" to "10000",
+                    "keyalg" to "RSA"
+                )
+            }
+            println("Generated release.keystore at ${keystoreFile.absolutePath}")
+        }
+    }
+}
+
+tasks.named("preBuild") {
+    dependsOn("generateReleaseKeystore")
 }
 
 tasks.register<Copy>("copyApkToWorkspace") {

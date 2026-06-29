@@ -1895,3 +1895,65 @@ fun ToolsScreen(
         )
     }
 }
+
+@Composable
+fun SplashScreen(onFinished: () -> Unit) {
+    val scale = remember { androidx.compose.animation.core.Animatable(0.5f) }
+    val alpha = remember { androidx.compose.animation.core.Animatable(0f) }
+
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(300)
+        kotlinx.coroutines.launch {
+            scale.animateTo(
+                targetValue = 1f,
+                animationSpec = androidx.compose.animation.core.spring(
+                    dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
+                    stiffness = androidx.compose.animation.core.Spring.StiffnessLow
+                )
+            )
+        }
+        kotlinx.coroutines.launch {
+            alpha.animateTo(
+                targetValue = 1f,
+                animationSpec = androidx.compose.animation.core.tween(800)
+            )
+        }
+        kotlinx.coroutines.delay(2000)
+        onFinished()
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.offset(y = (-30).dp)
+        ) {
+            Icon(
+                painter = androidx.compose.ui.res.painterResource(id = R.drawable.ic_launcher_foreground),
+                contentDescription = "App Logo",
+                tint = com.example.ui.theme.PrimaryGreen,
+                modifier = Modifier
+                    .size(100.dp)
+                    .scale(scale.value)
+                    .alpha(alpha.value)
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Text(
+                text = "From Circle",
+                color = com.example.ui.theme.TextDark,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                fontFamily = FontFamily.SansSerif,
+                letterSpacing = 2.sp,
+                modifier = Modifier.alpha(alpha.value)
+            )
+        }
+    }
+}
