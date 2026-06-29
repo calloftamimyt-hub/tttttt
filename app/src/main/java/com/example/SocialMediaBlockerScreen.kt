@@ -1,6 +1,11 @@
 package com.example
 
 import android.content.Context
+import android.content.Intent
+import android.provider.Settings
+import android.os.PowerManager
+import android.content.ComponentName
+import android.text.TextUtils
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -9,7 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AppBlocking
-import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.viewmodel.GlobalLanguage
@@ -52,8 +58,9 @@ fun SocialMediaBlockerScreen(onBack: () -> Unit) {
     val fbEntire = blockState("fb_entire_blocked")
 
     val tgApp = blockState("tg_app_blocked")
-    val tgSearch = blockState("tg_search_blocked")
+    val tgChats = blockState("tg_chats_blocked")
     val tgStory = blockState("tg_story_blocked")
+    val tgSearch = blockState("tg_search_blocked")
     val tgEntire = blockState("tg_entire_blocked")
 
     val waApp = blockState("wa_app_blocked")
@@ -74,7 +81,7 @@ fun SocialMediaBlockerScreen(onBack: () -> Unit) {
     val allStates = listOf(
         ytLong, ytReels, ytSearch, ytEntire,
         fbApp, fbStory, fbSearch, fbReels, fbEntire,
-        tgApp, tgSearch, tgStory, tgEntire,
+        tgApp, tgChats, tgStory, tgSearch, tgEntire,
         waApp, waStory, waEntire,
         msApp, msStory, msEntire,
         igApp, igSearch, igReels, igFeatures, igEntire
@@ -83,6 +90,52 @@ fun SocialMediaBlockerScreen(onBack: () -> Unit) {
     val updateMasterState = {
         val isAnyBlocked = allStates.any { it.value }
         sharedPrefs.edit().putBoolean("social_blocked", isAnyBlocked).apply()
+    }
+
+    // Permission Dialog State
+    var showPermissionDialog by remember { mutableStateOf(false) }
+    var pendingOption by remember { mutableStateOf<BlockerOptionData?>(null) }
+
+    // Helper functions for permission checks
+    fun isAccessibilityServiceEnabled(ctx: Context): Boolean {
+        val expectedComponentName = ComponentName(ctx, SocialAccessibilityService::class.java)
+        val enabledServicesSetting = Settings.Secure.getString(
+            ctx.contentResolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        ) ?: return false
+        val colonSplitter = TextUtils.SimpleStringSplitter(':')
+        colonSplitter.setString(enabledServicesSetting)
+        while (colonSplitter.hasNext()) {
+            val componentNameString = colonSplitter.next()
+            val enabledService = ComponentName.unflattenFromString(componentNameString)
+            if (enabledService != null && enabledService == expectedComponentName) {
+                return true
+            }
+        }
+        return false
+    }
+
+    fun isBatteryOptimizationIgnored(ctx: Context): Boolean {
+        val pm = ctx.getSystemService(Context.POWER_SERVICE) as PowerManager
+        return pm.isIgnoringBatteryOptimizations(ctx.packageName)
+    }
+
+    val handleToggleRequest: (BlockerOptionData, Boolean) -> Unit = { option, checked ->
+        if (checked) {
+            // First time or toggled on: check permissions
+            if (!isAccessibilityServiceEnabled(context) || !isBatteryOptimizationIgnored(context)) {
+                pendingOption = option
+                showPermissionDialog = true
+            } else {
+                option.state.value = true
+                sharedPrefs.edit().putBoolean(option.key, true).apply()
+                updateMasterState()
+            }
+        } else {
+            option.state.value = false
+            sharedPrefs.edit().putBoolean(option.key, false).apply()
+            updateMasterState()
+        }
     }
 
     Scaffold(
@@ -161,7 +214,7 @@ fun SocialMediaBlockerScreen(onBack: () -> Unit) {
                     BlockerOptionData("yt_entire_blocked", if (isEng) "Block Entire YouTube" else "সম্পূর্ণ ইউটিউব ব্লক", ytEntire)
                 ),
                 sharedPrefs = sharedPrefs,
-                onStateChanged = updateMasterState
+                onToggleRequest = handleToggleRequest
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -179,7 +232,7 @@ fun SocialMediaBlockerScreen(onBack: () -> Unit) {
                     BlockerOptionData("fb_entire_blocked", if (isEng) "Block Entire Facebook" else "সম্পূর্ণ ফেসবুক ব্লক", fbEntire)
                 ),
                 sharedPrefs = sharedPrefs,
-                onStateChanged = updateMasterState
+                onToggleRequest = handleToggleRequest
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -197,24 +250,25 @@ fun SocialMediaBlockerScreen(onBack: () -> Unit) {
                     BlockerOptionData("ig_entire_blocked", if (isEng) "Block Entire Instagram" else "সম্পূর্ণ ইনস্টাগ্রাম ব্লক", igEntire)
                 ),
                 sharedPrefs = sharedPrefs,
-                onStateChanged = updateMasterState
+                onToggleRequest = handleToggleRequest
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Platform 4: Telegram
+            // Platform 4: Telegram (App, Chats and Stories option)
             PlatformBlockerCard(
                 title = "Telegram",
                 themeColor = Color(0xFF24A1DE),
                 isEng = isEng,
                 options = listOf(
-                    BlockerOptionData("tg_app_blocked", if (isEng) "Block App Access" else "অ্যাপ অ্যাক্সেস ব্লক", tgApp),
-                    BlockerOptionData("tg_search_blocked", if (isEng) "Block Global Search" else "গ্লোবাল সার্চ ব্লক", tgSearch),
-                    BlockerOptionData("tg_story_blocked", if (isEng) "Block Stories" else "টেলিগ্রাম স্টোরি ব্লক", tgStory),
+                    BlockerOptionData("tg_app_blocked", if (isEng) "Telegram App Block" else "টেলিগ্রাম অ্যাপ ব্লক", tgApp),
+                    BlockerOptionData("tg_chats_blocked", if (isEng) "Telegram Chats Block" else "টেলিগ্রাম চ্যাটস ব্লক", tgChats),
+                    BlockerOptionData("tg_story_blocked", if (isEng) "Telegram Stories Block" else "টেলিগ্রাম স্টোরি ব্লক", tgStory),
+                    BlockerOptionData("tg_search_blocked", if (isEng) "Block Global Search" else "গলোবাল সার্চ ব্লক", tgSearch),
                     BlockerOptionData("tg_entire_blocked", if (isEng) "Block Entire Telegram" else "সম্পূর্ণ টেলিগ্রাম ব্লক", tgEntire)
                 ),
                 sharedPrefs = sharedPrefs,
-                onStateChanged = updateMasterState
+                onToggleRequest = handleToggleRequest
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -230,7 +284,7 @@ fun SocialMediaBlockerScreen(onBack: () -> Unit) {
                     BlockerOptionData("wa_entire_blocked", if (isEng) "Block Entire WhatsApp" else "সম্পূর্ণ হোয়াটসঅ্যাপ ব্লক", waEntire)
                 ),
                 sharedPrefs = sharedPrefs,
-                onStateChanged = updateMasterState
+                onToggleRequest = handleToggleRequest
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -246,11 +300,101 @@ fun SocialMediaBlockerScreen(onBack: () -> Unit) {
                     BlockerOptionData("ms_entire_blocked", if (isEng) "Block Entire Messenger" else "সম্পূর্ণ মেসেঞ্জার ব্লক", msEntire)
                 ),
                 sharedPrefs = sharedPrefs,
-                onStateChanged = updateMasterState
+                onToggleRequest = handleToggleRequest
             )
 
             Spacer(modifier = Modifier.height(40.dp))
         }
+    }
+
+    // Beautiful Permission rounded popup
+    if (showPermissionDialog) {
+        AlertDialog(
+            onDismissRequest = { showPermissionDialog = false },
+            shape = RoundedCornerShape(24.dp),
+            containerColor = Color.White,
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Security,
+                    contentDescription = null,
+                    tint = PrimaryGreen,
+                    modifier = Modifier.size(48.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = if (isEng) "System Permissions Needed" else "সিস্টেমের অনুমতি প্রয়োজন",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextDark,
+                    textAlign = TextAlign.Center
+                )
+            },
+            text = {
+                Text(
+                    text = if (isEng) {
+                        "To block apps and protect your focus in real-time, please enable Battery Optimization bypass and our Accessibility Service. This keeps the blocker running stably in the background."
+                    } else {
+                        "রিয়েল-টাইমে ডিস্ট্রাক্টিং অ্যাপ ব্লক করতে এবং ফোকাস ধরে রাখতে অনুগ্রহ করে ব্যাটারি অপ্টিমাইজেশন বাইপাস এবং আমাদের অ্যাক্সেসিবিলিটি সার্ভিস সক্রিয় করুন। এটি ব্যাকগ্রাউন্ডে ব্লকারটিকে সক্রিয় রাখতে প্রয়োজনীয়।"
+                    },
+                    fontSize = 13.5.sp,
+                    color = TextGray,
+                    lineHeight = 19.sp,
+                    textAlign = TextAlign.Center
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        // Launch settings corresponding to missing permissions
+                        if (!isAccessibilityServiceEnabled(context)) {
+                            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                            }
+                            context.startActivity(intent)
+                        } else if (!isBatteryOptimizationIgnored(context)) {
+                            val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
+                                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                            }
+                            context.startActivity(intent)
+                        }
+
+                        // Save state immediately
+                        pendingOption?.let { opt ->
+                            opt.state.value = true
+                            sharedPrefs.edit().putBoolean(opt.key, true).apply()
+                            updateMasterState()
+                        }
+                        showPermissionDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(44.dp)
+                ) {
+                    Text(
+                        text = if (isEng) "Open Settings" else "সেটিংস খুলুন",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showPermissionDialog = false },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp)
+                ) {
+                    Text(
+                        text = if (isEng) "Cancel" else "বাতিল",
+                        color = TextGray,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+        )
     }
 }
 
@@ -267,7 +411,7 @@ fun PlatformBlockerCard(
     isEng: Boolean,
     options: List<BlockerOptionData>,
     sharedPrefs: android.content.SharedPreferences,
-    onStateChanged: () -> Unit
+    onToggleRequest: (BlockerOptionData, Boolean) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -338,9 +482,7 @@ fun PlatformBlockerCard(
                         Switch(
                             checked = option.state.value,
                             onCheckedChange = { checked ->
-                                option.state.value = checked
-                                sharedPrefs.edit().putBoolean(option.key, checked).apply()
-                                onStateChanged()
+                                onToggleRequest(option, checked)
                             },
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = Color.White,

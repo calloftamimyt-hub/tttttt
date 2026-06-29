@@ -80,6 +80,12 @@
             android:launchMode="singleInstance"
             android:theme="@style/Theme.MyApplication" />
 
+        <activity
+            android:name=".BlockActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyApplication"
+            android:launchMode="singleTask" />
+
         <receiver
             android:name=".receiver.SilentModeReceiver"
             android:exported="true">
