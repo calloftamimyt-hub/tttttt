@@ -17,8 +17,8 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build with Gradle
-        run: gradle assembleDebug --stacktrace
+      - name: Build Unsigned APK
+        run: gradle assembleDebug -x validateSigningDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
