@@ -275,10 +275,34 @@ class PrayerViewModel : ViewModel() {
     }
 
     fun setAutoLocation(context: Context) {
-        _state.update { it.copy(isAutoLocation = true) }
+        setAutoLocationEnabled(context, true)
+    }
+
+    fun setAutoLocationEnabled(context: Context, enabled: Boolean) {
+        _state.update { it.copy(isAutoLocation = enabled) }
         val alarmPrefs = context.getSharedPreferences("prayer_alarm_prefs", Context.MODE_PRIVATE)
-        alarmPrefs.edit().putBoolean("is_auto_location", true).apply()
-        startLocationUpdates(context)
+        alarmPrefs.edit().putBoolean("is_auto_location", enabled).apply()
+        if (enabled) {
+            startLocationUpdates(context)
+        } else {
+            locationCallback?.let {
+                fusedLocationClient?.removeLocationUpdates(it)
+                locationCallback = null
+            }
+            val savedDist = alarmPrefs.getString("saved_district", "Dhaka") ?: "Dhaka"
+            _state.update {
+                it.copy(
+                    locationName = savedDist,
+                    selectedDistrict = savedDist
+                )
+            }
+            refreshState()
+        }
+        com.example.widget.WidgetUtils.updateAllWidgets(context)
+    }
+
+    fun forceRefreshLocation(context: Context) {
+        setAutoLocationEnabled(context, true)
     }
 
     fun toggleAlarm(context: Context, prayerName: String) {

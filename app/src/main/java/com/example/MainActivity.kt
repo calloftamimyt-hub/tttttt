@@ -483,7 +483,8 @@ class MainActivity : ComponentActivity() {
                                             onNavigateToDua = { selectedTab = "dua" },
                                             onNavigateToHadith = { selectedTab = "hadith" },
                                             onOpenNotificationsPage = { isNotificationsPageOpen = true },
-                                            onOpenFoundationPage = { isFoundationPageOpen = true }
+                                            onOpenFoundationPage = { isFoundationPageOpen = true },
+                                            onRefreshLocation = { viewModel.forceRefreshLocation(context) }
                                         )
                                     } else if (selectedTab == "location") {
                                         LocationSelectionScreen(
@@ -547,6 +548,8 @@ class MainActivity : ComponentActivity() {
                                             viewModel = settingsViewModel,
                                             prayerAlarms = state.alarms,
                                             onTogglePrayerAlarm = { alarmId -> viewModel.toggleAlarm(context, alarmId) },
+                                            isAutoLocation = state.isAutoLocation,
+                                            onToggleAutoLocation = { enabled -> viewModel.setAutoLocationEnabled(context, enabled) },
                                             onBack = { selectedTab = "profile" }
                                         )
                                     } else {
@@ -1054,7 +1057,8 @@ fun HomeScreen(
     onNavigateToDua: () -> Unit,
     onNavigateToHadith: () -> Unit,
     onOpenNotificationsPage: () -> Unit,
-    onOpenFoundationPage: () -> Unit
+    onOpenFoundationPage: () -> Unit,
+    onRefreshLocation: () -> Unit = {}
 ) {
     var isPrayerExpanded by remember { mutableStateOf(false) }
     
@@ -1091,33 +1095,58 @@ fun HomeScreen(
                     )
                 }
                 
-                // Location Box: beautifully aligned directly below the app name
+                // Location Badge: styled beautifully with a light green background/border and a refresh button next to it
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier = Modifier
-                        .padding(top = 2.dp)
-                        .clickable { onNavigateToLocation() }
-                        .padding(vertical = 4.dp)
+                    modifier = Modifier.padding(top = 4.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.LocationOn,
-                        contentDescription = "Location",
-                        tint = PrimaryGreen,
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Text(
-                        text = state.locationName,
-                        fontWeight = FontWeight.Medium,
-                        color = TextDark,
-                        fontSize = 12.sp
-                    )
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Expand Location",
-                        tint = TextDark,
-                        modifier = Modifier.size(14.dp)
-                    )
+                    // Badge Container
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier
+                            .background(PrimaryGreen.copy(alpha = 0.08f), RoundedCornerShape(12.dp))
+                            .border(1.dp, PrimaryGreen.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                            .clickable { onNavigateToLocation() }
+                            .padding(horizontal = 10.dp, vertical = 5.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.LocationOn,
+                            contentDescription = "Location",
+                            tint = PrimaryGreen,
+                            modifier = Modifier.size(13.dp)
+                        )
+                        Text(
+                            text = state.locationName,
+                            fontWeight = FontWeight.SemiBold,
+                            color = PrimaryGreen,
+                            fontSize = 11.5.sp
+                        )
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = "Expand Location",
+                            tint = PrimaryGreen,
+                            modifier = Modifier.size(13.dp)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.width(6.dp))
+                    
+                    // Refresh Location Button
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .background(Color(0xFFE2E8F0), CircleShape)
+                            .clickable { onRefreshLocation() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Refresh Location",
+                            tint = Color(0xFF475569),
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
                 }
             }
             

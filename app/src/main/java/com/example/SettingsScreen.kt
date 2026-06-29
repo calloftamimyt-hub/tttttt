@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material3.*
@@ -34,7 +35,9 @@ fun SettingsScreen(
     onBack: () -> Unit = {},
     viewModel: SettingsViewModel? = null,
     prayerAlarms: Map<String, Boolean> = emptyMap(),
-    onTogglePrayerAlarm: (String) -> Unit = {}
+    onTogglePrayerAlarm: (String) -> Unit = {},
+    isAutoLocation: Boolean = true,
+    onToggleAutoLocation: (Boolean) -> Unit = {}
 ) {
     val context = LocalContext.current
     val isEng = GlobalLanguage.isEnglish
@@ -171,6 +174,70 @@ fun SettingsScreen(
                                 )
                             }
                         }
+                    }
+                }
+            }
+
+            // Location Settings Section
+            Text(
+                text = if (isEng) "Location Settings" else "অবস্থান সেটিংস",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextDark,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 20.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            ) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MyLocation,
+                                contentDescription = null,
+                                tint = PrimaryGreen
+                            )
+                            Column {
+                                Text(
+                                    text = if (isEng) "Automatic Location" else "স্বয়ংক্রিয় অবস্থান",
+                                    fontSize = 13.5.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color(0xFF1E293B)
+                                )
+                                Text(
+                                    text = if (isEng) 
+                                        "Update prayer times based on current coordinates" 
+                                    else 
+                                        "বর্তমান স্থানাঙ্কের ভিত্তিতে নামাজের সময় আপডেট করুন",
+                                    fontSize = 11.sp,
+                                    color = TextGray
+                                )
+                            }
+                        }
+                        Switch(
+                            checked = isAutoLocation,
+                            onCheckedChange = onToggleAutoLocation,
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color.White,
+                                checkedTrackColor = PrimaryGreen
+                            )
+                        )
                     }
                 }
             }
