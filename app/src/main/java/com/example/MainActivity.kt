@@ -1785,7 +1785,7 @@ fun CategoryGrid(
                                 .clickable {
                                     if (item.first == "আমল শিক্ষা" || item.first == "নামাজ শিক্ষা" || 
                                         item.first == "Amal Learning" || item.first == "Salah Learning") {
-                                        onNavigateToTracker()
+                                        // ৫. এই দুটি Category-তে ক্লিক করলে কোনো Page Open হবে না এবং কোনো Action কাজ করবে না।
                                     } else if (item.first == "তাসবিহ" || item.first == "Tasbih") {
                                         onNavigateToTasbih()
                                     } else if (item.first == "আল কুরআন" || item.first == "Al Quran") {
@@ -1814,20 +1814,44 @@ fun CategoryGrid(
                                 }
                         ) {
                             Box(
-                                modifier = Modifier
-                                    .size(50.dp)
-                                    .background(
-                                        Color(
-                                            red = (item.third.red * 0.82f).coerceIn(0f, 1f),
-                                            green = (item.third.green * 0.82f).coerceIn(0f, 1f),
-                                            blue = (item.third.blue * 0.82f).coerceIn(0f, 1f),
-                                            alpha = 1f
-                                        ), 
-                                        CircleShape
-                                    ),
-                                contentAlignment = Alignment.Center
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.size(50.dp)
                             ) {
-                                Icon(item.second, contentDescription = item.first, tint = Color.White, modifier = Modifier.size(24.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .size(50.dp)
+                                        .background(
+                                            Color(
+                                                red = (item.third.red * 0.82f).coerceIn(0f, 1f),
+                                                green = (item.third.green * 0.82f).coerceIn(0f, 1f),
+                                                blue = (item.third.blue * 0.82f).coerceIn(0f, 1f),
+                                                alpha = 1f
+                                            ), 
+                                            CircleShape
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(item.second, contentDescription = item.first, tint = Color.White, modifier = Modifier.size(24.dp))
+                                }
+
+                                if (item.first == "আমল শিক্ষা" || item.first == "নামাজ শিক্ষা" || 
+                                    item.first == "Amal Learning" || item.first == "Salah Learning") {
+                                    val badgeText = if (GlobalLanguage.isEnglish) "Soon" else "আসছে"
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .offset(x = 4.dp, y = (-4).dp)
+                                            .background(Color(0xFFEF4444), RoundedCornerShape(6.dp))
+                                            .padding(horizontal = 4.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(
+                                            text = badgeText,
+                                            color = Color.White,
+                                            fontSize = 8.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
                             }
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
