@@ -120,6 +120,14 @@ fun PrayerScreen(
                 itemsIndexed(prayers) { _, p ->
                     val isActive = p.id == state.currentPrayerName
                     val isAlarmOn = state.alarms[p.id] == true
+                    val countdownStr = when (p.id) {
+                        "Fajr" -> state.fajrCountdown
+                        "Dhuhr" -> state.dhuhrCountdown
+                        "Asr" -> state.asrCountdown
+                        "Maghrib" -> state.maghribCountdown
+                        "Isha" -> state.ishaCountdown
+                        else -> ""
+                    }
                     UnifiedPrayerCard(
                         name = p.name,
                         startTime = p.startTime,
@@ -127,7 +135,8 @@ fun PrayerScreen(
                         icon = p.icon,
                         isActive = isActive,
                         isAlarmOn = isAlarmOn,
-                        onToggleAlarm = { onToggleAlarm(p.id) }
+                        onToggleAlarm = { onToggleAlarm(p.id) },
+                        countdown = countdownStr
                     )
                 }
                 
@@ -235,7 +244,8 @@ fun UnifiedPrayerCard(
     icon: ImageVector,
     isActive: Boolean,
     isAlarmOn: Boolean,
-    onToggleAlarm: () -> Unit
+    onToggleAlarm: () -> Unit,
+    countdown: String = ""
 ) {
     val bgColor by animateColorAsState(
         targetValue = if (isActive) PrimaryGreen else Color.White,
@@ -289,6 +299,15 @@ fun UnifiedPrayerCard(
                         color = subContentColor,
                         fontSize = 14.sp
                     )
+                    if (countdown.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = countdown,
+                            color = if (isActive) Color.White.copy(alpha = 0.9f) else Color(0xFFEF4444),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
 
@@ -333,19 +352,34 @@ fun ForbiddenTimesCard(state: ViewState) {
             }
             Spacer(modifier = Modifier.height(12.dp))
             
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(if (GlobalLanguage.isEnglish) "Sunrise:" else "সূর্যোদয়:", fontSize=13.sp, color=Color.Black)
-                Text("${state.forbiddenSunrise} - ${state.forbiddenSunriseEnd}", fontSize=13.sp, fontWeight = FontWeight.Bold, color=Color.Black)
+                Column(horizontalAlignment = Alignment.End) {
+                    Text("${state.forbiddenSunrise} - ${state.forbiddenSunriseEnd}", fontSize=13.sp, fontWeight = FontWeight.Bold, color=Color.Black)
+                    if (state.forbiddenSunriseCountdown.isNotEmpty()) {
+                        Text(state.forbiddenSunriseCountdown, fontSize=11.sp, fontWeight = FontWeight.Medium, color=Color(0xFFE11D48))
+                    }
+                }
             }
-            Spacer(modifier=Modifier.height(4.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Spacer(modifier=Modifier.height(6.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(if (GlobalLanguage.isEnglish) "Zenith (Noon):" else "দ্বিপ্রহর:", fontSize=13.sp, color=Color.Black)
-                Text("${state.forbiddenNoon} - ${state.forbiddenNoonEnd}", fontSize=13.sp, fontWeight = FontWeight.Bold, color=Color.Black)
+                Column(horizontalAlignment = Alignment.End) {
+                    Text("${state.forbiddenNoon} - ${state.forbiddenNoonEnd}", fontSize=13.sp, fontWeight = FontWeight.Bold, color=Color.Black)
+                    if (state.forbiddenNoonCountdown.isNotEmpty()) {
+                        Text(state.forbiddenNoonCountdown, fontSize=11.sp, fontWeight = FontWeight.Medium, color=Color(0xFFE11D48))
+                    }
+                }
             }
-            Spacer(modifier=Modifier.height(4.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Spacer(modifier=Modifier.height(6.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(if (GlobalLanguage.isEnglish) "Sunset:" else "সূর্যাস্ত:", fontSize=13.sp, color=Color.Black)
-                Text("${state.forbiddenSunset} - ${state.forbiddenSunsetEnd}", fontSize=13.sp, fontWeight = FontWeight.Bold, color=Color.Black)
+                Column(horizontalAlignment = Alignment.End) {
+                    Text("${state.forbiddenSunset} - ${state.forbiddenSunsetEnd}", fontSize=13.sp, fontWeight = FontWeight.Bold, color=Color.Black)
+                    if (state.forbiddenSunsetCountdown.isNotEmpty()) {
+                        Text(state.forbiddenSunsetCountdown, fontSize=11.sp, fontWeight = FontWeight.Medium, color=Color(0xFFE11D48))
+                    }
+                }
             }
         }
     }

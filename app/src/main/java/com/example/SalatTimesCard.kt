@@ -115,31 +115,36 @@ fun SalatTimesCard(state: ViewState) {
                         icon = Icons.Outlined.WbTwilight,
                         name = if (isEng) "Fajr" else "ফজর",
                         time = formatTime(times.fajrHours),
-                        isActive = state.currentPrayerName == "Fajr"
+                        isActive = state.currentPrayerName == "Fajr",
+                        countdown = state.fajrCountdown
                     )
                     SalatRowCompact(
                         icon = Icons.Outlined.WbSunny,
                         name = if (isEng) "Dhuhr" else "যোহর",
                         time = formatTime(times.dhuhrHours),
-                        isActive = state.currentPrayerName == "Dhuhr"
+                        isActive = state.currentPrayerName == "Dhuhr",
+                        countdown = state.dhuhrCountdown
                     )
                     SalatRowCompact(
                         icon = Icons.Outlined.Cloud,
                         name = if (isEng) "Asr" else "আসর",
                         time = formatTime(times.asrHours),
-                        isActive = state.currentPrayerName == "Asr"
+                        isActive = state.currentPrayerName == "Asr",
+                        countdown = state.asrCountdown
                     )
                     SalatRowCompact(
                         icon = Icons.Outlined.WbTwilight,
                         name = if (isEng) "Maghrib" else "মাগরিব",
                         time = formatTime(times.maghribHours),
-                        isActive = state.currentPrayerName == "Maghrib"
+                        isActive = state.currentPrayerName == "Maghrib",
+                        countdown = state.maghribCountdown
                     )
                     SalatRowCompact(
                         icon = Icons.Outlined.ModeNight,
                         name = if (isEng) "Isha" else "এশা",
                         time = formatTime(times.ishaHours),
-                        isActive = state.currentPrayerName == "Isha"
+                        isActive = state.currentPrayerName == "Isha",
+                        countdown = state.ishaCountdown
                     )
                 }
             }
@@ -170,7 +175,7 @@ fun CustomHorizontalDivider() {
 }
 
 @Composable
-fun SalatRowCompact(icon: ImageVector, name: String, time: String, isActive: Boolean) {
+fun SalatRowCompact(icon: ImageVector, name: String, time: String, isActive: Boolean, countdown: String = "") {
     val textColor = if (isActive) Color(0xFF10B982) else Color(0xFF444444)
     val fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium
     val bgColor = if (isActive) Color(0xFF10B982).copy(alpha = 0.08f) else Color.Transparent
@@ -190,14 +195,23 @@ fun SalatRowCompact(icon: ImageVector, name: String, time: String, isActive: Boo
             modifier = Modifier.size(13.dp)
         )
         Spacer(modifier = Modifier.width(4.dp))
-        Text(
-            text = name,
-            fontSize = 10.5.sp,
-            fontWeight = fontWeight,
-            color = textColor,
-            maxLines = 1,
-            modifier = Modifier.weight(1f)
-        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = name,
+                fontSize = 10.5.sp,
+                fontWeight = fontWeight,
+                color = textColor,
+                maxLines = 1
+            )
+            if (countdown.isNotEmpty()) {
+                Text(
+                    text = countdown,
+                    fontSize = 8.sp,
+                    color = if (isActive) Color(0xFF10B982) else Color.Gray,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
         Text(
             text = time,
             fontSize = 11.sp,

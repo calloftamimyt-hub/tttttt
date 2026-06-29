@@ -863,7 +863,7 @@ fun UnifiedHeroCard(state: com.example.viewmodel.ViewState, onNavigateToPrayerDe
                             Brush.verticalGradient(listOf(Color(0xFFBAE6FD), Color(0xFFF0F9FF)))
                         }
                     } else {
-                        Brush.verticalGradient(listOf(Color(0xFF1E293B), Color(0xFF334155)))
+                        Brush.verticalGradient(listOf(Color(0xFFE2E8F0), Color(0xFFF1F5F9)))
                     }
                 )
                 .padding(16.dp)
@@ -885,7 +885,7 @@ fun UnifiedHeroCard(state: com.example.viewmodel.ViewState, onNavigateToPrayerDe
                 
                 drawPath(
                     path = path,
-                    color = if (isDay) Color.White.copy(alpha = 0.5f) else Color.White.copy(alpha = 0.2f),
+                    color = Color.Black.copy(alpha = 0.12f),
                     style = androidx.compose.ui.graphics.drawscope.Stroke(
                         width = 2.dp.toPx(),
                         pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
@@ -932,15 +932,14 @@ fun UnifiedHeroCard(state: com.example.viewmodel.ViewState, onNavigateToPrayerDe
                         )
                     }
                 } else {
-                    // Moon
+                    // Golden Crescent Moon on Light BG
                     drawCircle(
-                        color = Color(0xFFF1F5F9),
+                        color = Color(0xFFFDE047),
                         radius = 12.dp.toPx(),
                         center = androidx.compose.ui.geometry.Offset(sunX, sunY)
                     )
-                    // Simple crescent effect
                     drawCircle(
-                        color = Color(0xFF1E293B),
+                        color = Color(0xFFE2E8F0),
                         radius = 10.dp.toPx(),
                         center = androidx.compose.ui.geometry.Offset(sunX - 4.dp.toPx(), sunY - 2.dp.toPx())
                     )
@@ -951,7 +950,7 @@ fun UnifiedHeroCard(state: com.example.viewmodel.ViewState, onNavigateToPrayerDe
             Box(contentAlignment = Alignment.Center, modifier = Modifier.align(Alignment.Center).size(130.dp)) {
                 // Background circle
                 androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
-                    drawCircle(color = Color.White.copy(alpha = 0.85f))
+                    drawCircle(color = Color.White.copy(alpha = 0.90f))
                 }
                 CircularProgressIndicator(
                     progress = { state.timerProgress },
@@ -1000,31 +999,31 @@ fun UnifiedHeroCard(state: com.example.viewmodel.ViewState, onNavigateToPrayerDe
                 verticalAlignment = Alignment.Bottom
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Outlined.WbTwilight, contentDescription = "Sunrise", tint = if (isDay) Color(0xFFF97316) else Color.White.copy(alpha = 0.7f), modifier = Modifier.size(20.dp))
+                    Icon(Icons.Outlined.WbTwilight, contentDescription = "Sunrise", tint = if (isDay) Color(0xFFF97316) else Color(0xFF4F46E5), modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         if (GlobalLanguage.isEnglish) "Sunrise" else "সূর্যোদয়",
-                        color = if (isDay) TextDark else Color.White.copy(alpha = 0.7f),
+                        color = TextDark,
                         fontSize = 10.sp
                     )
                     Text(
                         prayerTimes.sunrise.toBengali(),
-                        color = if (isDay) PrimaryGreen else Color.White,
+                        color = PrimaryGreen,
                         fontWeight = FontWeight.Bold,
                         fontSize = 11.sp
                     )
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Outlined.WbSunny, contentDescription = "Sunset", tint = if (isDay) Color(0xFFF97316) else Color.White.copy(alpha = 0.7f), modifier = Modifier.size(20.dp))
+                    Icon(Icons.Outlined.WbSunny, contentDescription = "Sunset", tint = if (isDay) Color(0xFFF97316) else Color(0xFF4F46E5), modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         if (GlobalLanguage.isEnglish) "Sunset" else "সূর্যাস্ত",
-                        color = if (isDay) TextDark else Color.White.copy(alpha = 0.7f),
+                        color = TextDark,
                         fontSize = 10.sp
                     )
                     Text(
                         prayerTimes.maghrib.toBengali(),
-                        color = if (isDay) PrimaryGreen else Color.White,
+                        color = PrimaryGreen,
                         fontWeight = FontWeight.Bold,
                         fontSize = 11.sp
                     )
@@ -1266,9 +1265,9 @@ fun HomeScreen(
                 .padding(horizontal = 20.dp), 
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            ForbiddenTimeCard(LocalAppStrings.current.sunrise, state.forbiddenSunrise, state.forbiddenSunriseEnd, Icons.Outlined.WbTwilight)
-            ForbiddenTimeCard(LocalAppStrings.current.noon, state.forbiddenNoon, state.forbiddenNoonEnd, Icons.Outlined.WbSunny)
-            ForbiddenTimeCard(LocalAppStrings.current.sunset, state.forbiddenSunset, state.forbiddenSunsetEnd, Icons.Outlined.WbTwilight)
+            ForbiddenTimeCard(LocalAppStrings.current.sunrise, state.forbiddenSunrise, state.forbiddenSunriseEnd, Icons.Outlined.WbTwilight, state.forbiddenSunriseCountdown)
+            ForbiddenTimeCard(LocalAppStrings.current.noon, state.forbiddenNoon, state.forbiddenNoonEnd, Icons.Outlined.WbSunny, state.forbiddenNoonCountdown)
+            ForbiddenTimeCard(LocalAppStrings.current.sunset, state.forbiddenSunset, state.forbiddenSunsetEnd, Icons.Outlined.WbTwilight, state.forbiddenSunsetCountdown)
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -1507,14 +1506,17 @@ fun CategoryScrollableRow(
 }
 
 @Composable
-fun ForbiddenTimeCard(title: String, start: String, end: String, icon: ImageVector) {
+fun ForbiddenTimeCard(title: String, start: String, end: String, icon: ImageVector, countdown: String = "") {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Icon(icon, contentDescription = title, tint = Color(0xFFF59E0B), modifier = Modifier.size(28.dp))
+        Icon(icon, contentDescription = title, tint = Color(0xFFEF4444), modifier = Modifier.size(28.dp))
         Spacer(modifier = Modifier.height(8.dp))
         Text(title, color = TextDark, fontSize = 13.sp, fontWeight = FontWeight.Bold)
         Text(start, color = PrimaryGreen, fontSize = 11.sp)
         Text(if (GlobalLanguage.isEnglish) "from" else "থেকে", color = TextGray, fontSize = 10.sp)
         Text(end, color = PrimaryGreen, fontSize = 11.sp)
+        if (countdown.isNotEmpty()) {
+            Text(countdown, color = Color(0xFFEF4444), fontSize = 9.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 2.dp))
+        }
     }
 }
 
