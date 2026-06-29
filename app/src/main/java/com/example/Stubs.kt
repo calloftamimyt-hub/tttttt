@@ -19,14 +19,7 @@ fun <T> StateFlow<T>.collectAsState(): State<T> = mutableStateOf(this.value)
 
 // Stubs for missing UI components
 @Composable fun TasbihScreen(onBack: () -> Unit = {}) {}
-@Composable fun SavedDuasScreen(onBack: () -> Unit = {}) {}
 @Composable fun SavedHadithsScreen(onBack: () -> Unit = {}) {}
-@Composable fun SettingsScreen(
-    onBack: () -> Unit = {},
-    viewModel: com.example.viewmodel.SettingsViewModel? = null,
-    prayerAlarms: Map<String, Boolean> = emptyMap(),
-    onTogglePrayerAlarm: (String) -> Unit = {}
-) {}
 @Composable fun ZakatCalculatorScreen(onBack: () -> Unit = {}) {}
 @Composable fun AllahNamesScreen(onBack: () -> Unit = {}) {}
 
@@ -36,8 +29,6 @@ class AppCore {
     fun initialize() {}
 }
 
-@Composable fun SocialMediaBlockerScreen(onBack: () -> Unit = {}) {}
-@Composable fun WebsiteBlockerScreen(onBack: () -> Unit = {}) {}
 @Composable fun ScreenTimeScreen(onBack: () -> Unit = {}) {}
 
 object CountryData {
