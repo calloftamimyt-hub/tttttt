@@ -5,10 +5,32 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import com.example.database.DailyTracker
 
+import kotlinx.coroutines.flow.asStateFlow
+
 class SettingsViewModel(context: android.content.Context) : ViewModel() {
-    val selectedCountryCode: StateFlow<String> = MutableStateFlow("BD")
-    val language: StateFlow<String> = MutableStateFlow(AppLanguages.BENGALI)
-    fun setSelectedCountryAndLanguage(countryCode: String, languageCode: String = AppLanguages.BENGALI) {}
+    private val prefs = context.getSharedPreferences("app_settings", android.content.Context.MODE_PRIVATE)
+
+    private val _selectedCountryCode = MutableStateFlow(prefs.getString("country_code", "BD") ?: "BD")
+    val selectedCountryCode: StateFlow<String> = _selectedCountryCode.asStateFlow()
+
+    private val _language = MutableStateFlow(prefs.getString("app_language", AppLanguages.BENGALI) ?: AppLanguages.BENGALI)
+    val language: StateFlow<String> = _language.asStateFlow()
+
+    init {
+        GlobalLanguage.isEnglish = (_language.value == AppLanguages.ENGLISH)
+    }
+
+    fun setSelectedCountryAndLanguage(countryCode: String, languageCode: String? = null) {
+        val calculatedLanguage = languageCode ?: if (countryCode == "BD") AppLanguages.BENGALI else AppLanguages.ENGLISH
+        _selectedCountryCode.value = countryCode
+        _language.value = calculatedLanguage
+        GlobalLanguage.isEnglish = (calculatedLanguage == AppLanguages.ENGLISH)
+        prefs.edit()
+            .putString("country_code", countryCode)
+            .putString("app_language", calculatedLanguage)
+            .apply()
+    }
+
     fun toggleAlarm(context: android.content.Context, alarmId: String) {}
 }
 class AlarmViewModel(context: android.content.Context) : ViewModel() {

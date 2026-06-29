@@ -235,15 +235,15 @@ fun LanguageStep(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 24.dp, bottom = 16.dp),
+            .padding(top = 16.dp, bottom = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         
         Text(
             text = titleText,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.ExtraBold,
             color = TextDark,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 16.dp)
@@ -251,7 +251,7 @@ fun LanguageStep(
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = subtitleText,
-            fontSize = 14.sp,
+            fontSize = 13.sp,
             color = TextGray,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 16.dp)
@@ -259,34 +259,34 @@ fun LanguageStep(
         
         Spacer(modifier = Modifier.height(16.dp))
         
-        // Search Bar at the very top
+        // Premium Search Bar
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
-                .padding(bottom = 12.dp),
-            placeholder = { Text(searchPlaceholder, color = TextGray.copy(alpha = 0.7f), fontSize = 15.sp) },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = PrimaryGreen) },
+                .padding(bottom = 8.dp),
+            placeholder = { Text(searchPlaceholder, color = TextGray.copy(alpha = 0.5f), fontSize = 14.sp) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = PrimaryGreen, modifier = Modifier.size(20.dp)) },
             trailingIcon = if (searchQuery.isNotEmpty()) {
                 {
                     IconButton(onClick = { searchQuery = "" }) {
-                        Icon(Icons.Default.Close, contentDescription = "Clear", tint = TextGray)
+                        Icon(Icons.Default.Close, contentDescription = "Clear", tint = TextGray, modifier = Modifier.size(18.dp))
                     }
                 }
             } else null,
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = PrimaryGreen,
-                unfocusedBorderColor = Color(0xFFE5E7EB),
+                unfocusedBorderColor = Color(0xFFE2E8F0),
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White
             ),
             singleLine = true
         )
         
-        // Scrollable List
+        // Scrollable List (Full Width, connected beautifully)
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
@@ -315,7 +315,7 @@ fun LanguageStep(
                         Text(
                             text = if (isBengali) "কোনো ফলাফল পাওয়া যায়নি" else "No matching results found",
                             color = TextGray,
-                            fontSize = 16.sp,
+                            fontSize = 15.sp,
                             fontWeight = FontWeight.Medium
                         )
                     }
@@ -331,14 +331,14 @@ fun LanguageStep(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
-                .height(54.dp),
-            shape = RoundedCornerShape(16.dp),
+                .height(52.dp),
+            shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+            elevation = ButtonDefaults.buttonElevation(defaultElevation = 1.dp)
         ) {
             Text(
                 text = buttonText,
-                fontSize = 17.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
@@ -356,14 +356,14 @@ fun CountryLanguageOption(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        shape = androidx.compose.ui.graphics.RectangleShape,
-        color = if (isSelected) PrimaryGreen.copy(alpha = 0.08f) else Color.White,
+        color = if (isSelected) Color(0xFFE8F5E9) else Color.White,
         shadowElevation = 0.dp
     ) {
         Column {
             Row(
                 modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -371,25 +371,25 @@ fun CountryLanguageOption(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.weight(1f)
                 ) {
-                    // Flag display
+                    // Slim, premium flag display
                     Text(
                         text = country.flag,
-                        fontSize = 28.sp,
-                        modifier = Modifier.padding(end = 12.dp)
+                        fontSize = 24.sp,
+                        modifier = Modifier.padding(end = 14.dp)
                     )
                     
                     Column {
                         Text(
                             text = country.name,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 16.sp,
-                            color = TextDark
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
+                            fontSize = 14.5.sp,
+                            color = if (isSelected) Color(0xFF1B5E20) else TextDark
                         )
-                        Spacer(modifier = Modifier.height(2.dp))
+                        Spacer(modifier = Modifier.height(1.dp))
                         Text(
-                            text = if (country.code == "BD") "বাংলা (Bengali)" else "English (US)",
-                            fontSize = 12.sp,
-                            color = TextGray
+                            text = if (country.code == "BD") "বাংলা (Bengali)" else "English",
+                            fontSize = 11.5.sp,
+                            color = if (isSelected) Color(0xFF2E7D32) else TextGray
                         )
                     }
                 }
@@ -397,11 +397,11 @@ fun CountryLanguageOption(
                 Icon(
                     imageVector = if (isSelected) Icons.Default.CheckCircle else Icons.Outlined.Circle,
                     contentDescription = null,
-                    tint = if (isSelected) PrimaryGreen else Color(0xFFD1D5DB),
-                    modifier = Modifier.size(22.dp)
+                    tint = if (isSelected) Color(0xFF2E7D32) else Color(0xFFE2E8F0),
+                    modifier = Modifier.size(20.dp)
                 )
             }
-            HorizontalDivider(color = Color(0xFFE5E7EB), thickness = 0.5.dp)
+            HorizontalDivider(color = Color(0xFFF1F5F9), thickness = 0.5.dp)
         }
     }
 }
