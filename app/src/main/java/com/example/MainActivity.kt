@@ -814,7 +814,7 @@ fun AppBottomNavigation(selectedTab: String, isDark: Boolean, onTabSelected: (St
 }
 
 @Composable
-fun SkyAnimationCard(state: com.example.viewmodel.ViewState) {
+fun UnifiedHeroCard(state: com.example.viewmodel.ViewState, onNavigateToPrayerDetails: () -> Unit) {
     val prayerTimes = state.prayerTimes ?: return
     val currentHour = state.currentHourDecimal
     val sunrise = prayerTimes.sunriseHours
@@ -836,7 +836,11 @@ fun SkyAnimationCard(state: com.example.viewmodel.ViewState) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp),
+            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) { onNavigateToPrayerDetails() },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -844,7 +848,7 @@ fun SkyAnimationCard(state: com.example.viewmodel.ViewState) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(140.dp)
+                .height(180.dp)
                 .background(
                     brush = if (isDay) {
                         if (state.isRainy) {
@@ -862,10 +866,10 @@ fun SkyAnimationCard(state: com.example.viewmodel.ViewState) {
                 val width = size.width
                 val height = size.height
                 val arcHeight = height * 0.8f
-                val arcWidth = width * 0.8f
+                val arcWidth = width * 0.85f
                 val startX = (width - arcWidth) / 2
-                val topY = height * 0.2f
-                val bottomY = height * 0.9f
+                val topY = height * 0.1f
+                val bottomY = height * 0.85f
 
                 // Draw Path Arc
                 val path = androidx.compose.ui.graphics.Path().apply {
@@ -883,7 +887,6 @@ fun SkyAnimationCard(state: com.example.viewmodel.ViewState) {
                 )
 
                 // Calculate Position on Path
-                // Simple quadratic Bezier formula: (1-t)^2 * P0 + 2(1-t)t * P1 + t^2 * P2
                 val t = progress
                 val p0x = startX
                 val p0y = bottomY
@@ -937,43 +940,95 @@ fun SkyAnimationCard(state: com.example.viewmodel.ViewState) {
                     )
                 }
             }
+
+            // Foreground Circular Timer Overlay
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.align(Alignment.Center).size(130.dp)) {
+                // Background circle
+                androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                    drawCircle(color = Color.White.copy(alpha = 0.85f))
+                }
+                CircularProgressIndicator(
+                    progress = { state.timerProgress },
+                    modifier = Modifier.fillMaxSize(),
+                    color = PrimaryGreen,
+                    strokeWidth = 6.dp,
+                    strokeCap = StrokeCap.Round,
+                    trackColor = Color.Transparent
+                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    val displayNames = if (state.rotatingNames.isNotEmpty()) state.rotatingNames else listOf(state.currentPrayerNameBen.ifEmpty { state.nextPrayerNameBen })
+                    var currentIndex by remember(displayNames) { mutableIntStateOf(0) }
+                    LaunchedEffect(displayNames) {
+                        if (displayNames.size > 1) {
+                            while(true) {
+                                kotlinx.coroutines.delay(3000)
+                                currentIndex = (currentIndex + 1) % displayNames.size
+                            }
+                        } else {
+                            currentIndex = 0
+                        }
+                    }
+                    val currentTitle = if (displayNames.isNotEmpty()) displayNames[currentIndex % displayNames.size] else "..."
+                    
+                    AnimatedContent(
+                        targetState = currentTitle,
+                        transitionSpec = {
+                            (fadeIn(animationSpec = tween(600)) + slideInVertically { height -> height }).togetherWith(
+                                fadeOut(animationSpec = tween(600)) + slideOutVertically { height -> -height }
+                            )
+                        },
+                        label = "hero_title_rotation"
+                    ) { title ->
+                        Text(title, color = TextDark, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    }
+                    
+                    Text(state.nextPrayerRemaining, color = PrimaryGreen, fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.padding(top=2.dp))
+                    Text(if (GlobalLanguage.isEnglish) "Time remaining" else "শেষ হতে বাকি", color = TextGray, fontSize = 10.sp, modifier = Modifier.padding(top=2.dp))
+                }
+            }
             
-            // Labels for Sunrise and Sunset
+            // Labels for Sunrise and Sunset at bottom
             Row(
                 modifier = Modifier.fillMaxSize(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Bottom
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Outlined.WbTwilight, contentDescription = "Sunrise", tint = if (isDay) Color(0xFFF97316) else Color.White.copy(alpha = 0.7f), modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         if (GlobalLanguage.isEnglish) "Sunrise" else "সূর্যোদয়",
-                        color = if (isDay) TextGray else Color.White.copy(alpha = 0.7f),
+                        color = if (isDay) TextDark else Color.White.copy(alpha = 0.7f),
                         fontSize = 10.sp
                     )
                     Text(
                         prayerTimes.sunrise.toBengali(),
                         color = if (isDay) PrimaryGreen else Color.White,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp
+                        fontSize = 11.sp
                     )
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Outlined.WbSunny, contentDescription = "Sunset", tint = if (isDay) Color(0xFFF97316) else Color.White.copy(alpha = 0.7f), modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         if (GlobalLanguage.isEnglish) "Sunset" else "সূর্যাস্ত",
-                        color = if (isDay) TextGray else Color.White.copy(alpha = 0.7f),
+                        color = if (isDay) TextDark else Color.White.copy(alpha = 0.7f),
                         fontSize = 10.sp
                     )
                     Text(
                         prayerTimes.maghrib.toBengali(),
                         color = if (isDay) PrimaryGreen else Color.White,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp
+                        fontSize = 11.sp
                     )
                 }
             }
         }
     }
 }
+
+
 
 @Composable
 fun HomeScreen(
@@ -1018,12 +1073,10 @@ fun HomeScreen(
         ) {
             // Header Title and Location
             Column(
-                modifier = Modifier.padding(top = 10.dp)
+                modifier = Modifier.padding(top = 8.dp)
             ) {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .clickable { onNavigateToLocation() }
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "Halal Circle",
@@ -1033,42 +1086,33 @@ fun HomeScreen(
                     )
                 }
                 
-                // Location Box: Thinner and positioned beautifully below the app name
-                Box(
+                // Location Box: beautifully aligned directly below the app name
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                     modifier = Modifier
-                        .padding(top = 4.dp)
-                        .clip(RoundedCornerShape(50))
-                        .background(Color.White.copy(alpha = 0.6f))
-                        .border(
-                            border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.25f)),
-                            shape = RoundedCornerShape(50)
-                        )
+                        .padding(top = 2.dp)
                         .clickable { onNavigateToLocation() }
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                        .padding(vertical = 4.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.LocationOn,
-                            contentDescription = "Location",
-                            tint = PrimaryGreen,
-                            modifier = Modifier.size(13.dp)
-                        )
-                        Text(
-                            text = state.locationName,
-                            fontWeight = FontWeight.Bold,
-                            color = TextDark,
-                            fontSize = 11.sp
-                        )
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = "Expand Location",
-                            tint = TextDark,
-                            modifier = Modifier.size(13.dp)
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Outlined.LocationOn,
+                        contentDescription = "Location",
+                        tint = PrimaryGreen,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Text(
+                        text = state.locationName,
+                        fontWeight = FontWeight.Medium,
+                        color = TextDark,
+                        fontSize = 12.sp
+                    )
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Expand Location",
+                        tint = TextDark,
+                        modifier = Modifier.size(14.dp)
+                    )
                 }
             }
             
@@ -1167,76 +1211,8 @@ fun HomeScreen(
             }
         }
 
-        // Sky Animation Section
-        SkyAnimationCard(state)
-
-        // Hero Section
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, top = 8.dp, bottom = 12.dp).clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null
-            ) { onNavigateToPrayerDetails() },
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Sunrise
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Outlined.WbTwilight, contentDescription = "Sunrise", tint = Color(0xFFF97316), modifier = Modifier.size(28.dp))
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(state.prayerTimes?.sunrise?.toBengali() ?: "--", color = PrimaryGreen, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                Text(if (GlobalLanguage.isEnglish) "Sunrise" else "সূর্যোদয়", color = TextGray, fontSize = 11.sp)
-            }
-
-            // Circular Timer
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(140.dp).padding(4.dp)) {
-                // Foreground filling circle
-                CircularProgressIndicator(
-                    progress = { state.timerProgress },
-                    modifier = Modifier.fillMaxSize(),
-                    color = PrimaryGreen,
-                    strokeWidth = 8.dp,
-                    strokeCap = StrokeCap.Round
-                )
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    val displayNames = if (state.rotatingNames.isNotEmpty()) state.rotatingNames else listOf(state.currentPrayerNameBen.ifEmpty { state.nextPrayerNameBen })
-                    var currentIndex by remember(displayNames) { mutableIntStateOf(0) }
-                    LaunchedEffect(displayNames) {
-                        if (displayNames.size > 1) {
-                            while(true) {
-                                kotlinx.coroutines.delay(3000)
-                                currentIndex = (currentIndex + 1) % displayNames.size
-                            }
-                        } else {
-                            currentIndex = 0
-                        }
-                    }
-                    val currentTitle = if (displayNames.isNotEmpty()) displayNames[currentIndex % displayNames.size] else "..."
-                    
-                    AnimatedContent(
-                        targetState = currentTitle,
-                        transitionSpec = {
-                            (fadeIn(animationSpec = tween(600)) + slideInVertically { height -> height }).togetherWith(
-                                fadeOut(animationSpec = tween(600)) + slideOutVertically { height -> -height }
-                            )
-                        },
-                        label = "hero_title_rotation"
-                    ) { title ->
-                        Text(title, color = TextDark, fontWeight = FontWeight.Bold, fontSize = 22.sp)
-                    }
-                    
-                    Text(state.nextPrayerRemaining, color = PrimaryGreen, fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.padding(top=2.dp))
-                    Text(if (GlobalLanguage.isEnglish) "Time remaining" else "শেষ হতে বাকি", color = TextGray, fontSize = 11.sp, modifier = Modifier.padding(top=2.dp))
-                }
-            }
-
-            // Sunset
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Outlined.WbSunny, contentDescription = "Sunset", tint = Color(0xFFF97316), modifier = Modifier.size(28.dp))
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(state.prayerTimes?.maghrib?.toBengali() ?: "--", color = PrimaryGreen, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                Text(if (GlobalLanguage.isEnglish) "Sunset" else "সূর্যাস্ত", color = TextGray, fontSize = 11.sp)
-            }
-        }
+        // Unified Hero Section (Sun/Moon Arc + Countdown)
+        UnifiedHeroCard(state, onNavigateToPrayerDetails)
 
         // Sub info (Sehri / Iftar Countdown)
         Row(

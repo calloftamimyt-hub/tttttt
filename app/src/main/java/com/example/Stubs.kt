@@ -59,7 +59,13 @@ class PrayerTimes(
     val dhuhr: String = "",
     val asr: String = "",
     val maghrib: String = "",
-    val isha: String = ""
+    val isha: String = "",
+    val fajrHours: Double = 0.0,
+    val sunriseHours: Double = 0.0,
+    val dhuhrHours: Double = 0.0,
+    val asrHours: Double = 0.0,
+    val maghribHours: Double = 0.0,
+    val ishaHours: Double = 0.0
 )
 
 // NOTE: Kotlin does not allow multiple packages in one file with declarations before the package statement.
