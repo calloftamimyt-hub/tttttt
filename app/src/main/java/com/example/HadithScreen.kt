@@ -156,19 +156,23 @@ fun HadithScreen(onBack: () -> Unit) {
                     }
                 }
 
-                // Hadith List with Compact layout & minimal vertical/horizontal spacing
+                // Hadith List with Slim, connected layout
                 LazyColumn(
                     modifier = Modifier
                         .weight(1f)
-                        .fillMaxWidth(),
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                        .fillMaxWidth()
+                        .background(Color.White)
                 ) {
                     items(filteredHadiths) { hadith ->
                         HadithListItem(
                             hadith = hadith,
                             sharedPrefs = sharedPrefs,
                             onClick = { selectedHadith = hadith }
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            thickness = 0.5.dp,
+                            color = Color(0xFFF1F5F9)
                         )
                     }
                     
@@ -205,69 +209,54 @@ fun HadithListItem(
         mutableStateOf(sharedPrefs.getBoolean("hadith_${hadith.id}", false))
     }
 
-    Card(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = BorderStroke(1.dp, Color(0xFFF1F5F9)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .background(Color(0xFFF0FDF4), CircleShape)
-                    .border(1.dp, PrimaryGreen.copy(alpha = 0.2f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = hadith.id.toString(),
-                    color = PrimaryGreen,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp
-                )
-            }
-            
-            Spacer(modifier = Modifier.width(12.dp))
-            
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = hadith.title,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextDark
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = hadith.category,
-                    fontSize = 11.sp,
-                    color = TextGray
-                )
-            }
-            
-            Spacer(modifier = Modifier.width(8.dp))
+        // Slim ID indicator
+        Text(
+            text = hadith.id,
+            color = PrimaryGreen,
+            fontWeight = FontWeight.Bold,
+            fontSize = 13.sp,
+            modifier = Modifier.width(28.dp)
+        )
+        
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = hadith.title,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = TextDark,
+                maxLines = 1,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+            )
+            Text(
+                text = hadith.category,
+                fontSize = 11.sp,
+                color = TextGray
+            )
+        }
+        
+        Spacer(modifier = Modifier.width(8.dp))
 
-            IconButton(
-                onClick = {
-                    isSaved = !isSaved
-                    sharedPrefs.edit().putBoolean("hadith_${hadith.id}", isSaved).apply()
-                },
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(
-                    imageVector = if (isSaved) Icons.Outlined.BookmarkAdded else Icons.Outlined.BookmarkAdd,
-                    contentDescription = "Save Hadith",
-                    tint = if (isSaved) PrimaryGreen else TextGray.copy(alpha = 0.6f),
-                    modifier = Modifier.size(20.dp)
-                )
-            }
+        // Save icon on the right side
+        IconButton(
+            onClick = {
+                isSaved = !isSaved
+                sharedPrefs.edit().putBoolean("hadith_${hadith.id}", isSaved).apply()
+            },
+            modifier = Modifier.size(32.dp)
+        ) {
+            Icon(
+                imageVector = if (isSaved) Icons.Outlined.BookmarkAdded else Icons.Outlined.BookmarkAdd,
+                contentDescription = "Save Hadith",
+                tint = if (isSaved) PrimaryGreen else TextGray.copy(alpha = 0.4f),
+                modifier = Modifier.size(18.dp)
+            )
         }
     }
 }
