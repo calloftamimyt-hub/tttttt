@@ -22,6 +22,7 @@ jobs:
           gradle bundleRelease \
             -Pandroid.injected.signing.store.file=app/tmkey.jks \
             -Pandroid.injected.signing.store.password=CallOfTamim2345617859Tanjil@#yt@#67Tuli@# \
+            -Pandroid.injected.signing.store.type=PKCS12 \
             -Pandroid.injected.signing.key.alias=releasekey \
             -Pandroid.injected.signing.key.password=CallOfTamim2345617859Tanjil@#yt@#67Tuli@#\
             --stacktrace
@@ -31,3 +32,4 @@ jobs:
         with:
           name: play-store-bundle
           path: app/build/outputs/bundle/release/*.aab
+
