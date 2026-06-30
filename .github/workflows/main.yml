@@ -19,12 +19,17 @@ jobs:
 
       - name: Generate Fresh Keystore
         run: |
+          # যদি পুরনো কোনো tmkey.jks ফাইল থেকে থাকে, তা আগে ডিলিট করে দেওয়া হবে
+          rm -f app/tmkey.jks
+          
+          # একদম ফ্রেশ JKS চাবি তৈরি করা হচ্ছে
           keytool -genkeypair -v \
             -keystore app/tmkey.jks \
             -alias releasekey \
             -keyalg RSA \
             -keysize 2048 \
             -validity 10000 \
+            -storetype JKS \
             -storepass tamim1234 \
             -keypass tamim1234 \
             -dname "CN=Tamim, O=App, C=BD"
