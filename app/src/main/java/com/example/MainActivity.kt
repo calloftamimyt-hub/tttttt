@@ -858,49 +858,14 @@ fun UnifiedHeroCard(state: com.example.viewmodel.ViewState, onNavigateToPrayerDe
             modifier = Modifier
                 .fillMaxWidth()
                 .height(180.dp)
-                .background(
-                    brush = if (isDay) {
-                        if (state.isRainy) {
-                            Brush.verticalGradient(listOf(Color(0xFF94A3B8), Color(0xFFF1F5F9)))
-                        } else {
-                            Brush.verticalGradient(listOf(Color(0xFFBAE6FD), Color(0xFFF0F9FF)))
-                        }
-                    } else {
-                        Brush.verticalGradient(listOf(Color(0xFFE2E8F0), Color(0xFFF1F5F9)))
-                    }
-                )
+                .background(Color.White)
                 .padding(16.dp)
         ) {
-            // 1. Background Path Arc Canvas (Drawn behind the Countdown Circle)
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                val width = size.width
-                val height = size.height
-                val arcWidth = width * 0.85f
-                val startX = (width - arcWidth) / 2
-                val topY = height * 0.1f
-                val bottomY = height * 0.85f
-
-                // Draw Path Arc
-                val path = androidx.compose.ui.graphics.Path().apply {
-                    moveTo(startX, bottomY)
-                    quadraticTo(width / 2, -topY, width - startX, bottomY)
-                }
-                
-                drawPath(
-                    path = path,
-                    color = Color.Black.copy(alpha = 0.12f),
-                    style = androidx.compose.ui.graphics.drawscope.Stroke(
-                        width = 2.dp.toPx(),
-                        pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
-                    )
-                )
-            }
-
-            // 2. Foreground Circular Timer Overlay (Salat Countdown Circle)
+            // Salat Countdown Circle (Positioned in the Center)
             Box(contentAlignment = Alignment.Center, modifier = Modifier.align(Alignment.Center).size(130.dp)) {
                 // Background circle
                 androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
-                    drawCircle(color = Color.White.copy(alpha = 0.90f))
+                    drawCircle(color = Color(0xFFF8FAFC))
                 }
                 CircularProgressIndicator(
                     progress = { state.timerProgress },
@@ -908,7 +873,7 @@ fun UnifiedHeroCard(state: com.example.viewmodel.ViewState, onNavigateToPrayerDe
                     color = PrimaryGreen,
                     strokeWidth = 6.dp,
                     strokeCap = StrokeCap.Round,
-                    trackColor = Color.Transparent
+                    trackColor = Color(0xFFF1F5F9)
                 )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     val displayNames = if (state.rotatingNames.isNotEmpty()) state.rotatingNames else listOf(state.currentPrayerNameBen.ifEmpty { state.nextPrayerNameBen })
@@ -941,49 +906,6 @@ fun UnifiedHeroCard(state: com.example.viewmodel.ViewState, onNavigateToPrayerDe
                     Text(if (GlobalLanguage.isEnglish) "Time remaining" else "শেষ হতে বাকি", color = TextGray, fontSize = 10.sp, modifier = Modifier.padding(top=2.dp))
                 }
             }
-
-            // 3. Foreground Moving Indicator Canvas (Drawn ON TOP of the Salat Countdown Circle)
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                val width = size.width
-                val height = size.height
-                val arcWidth = width * 0.85f
-                val startX = (width - arcWidth) / 2
-                val topY = height * 0.1f
-                val bottomY = height * 0.85f
-
-                // Calculate Position on Path
-                val t = progress
-                val p0x = startX
-                val p0y = bottomY
-                val p1x = width / 2
-                val p1y = -topY
-                val p2x = width - startX
-                val p2y = bottomY
-
-                val sunX = (1 - t) * (1 - t) * p0x + 2 * (1 - t) * t * p1x + t * t * p2x
-                val sunY = (1 - t) * (1 - t) * p0y + 2 * (1 - t) * t * p1y + t * t * p2y
-
-                // Draw Sun or Moon with a solid, premium gold/amber color (no color change transitions!)
-                if (isDay) {
-                    drawCircle(
-                        color = Color(0xFFF59E0B), // Stable elegant amber gold
-                        radius = 13.dp.toPx(),
-                        center = androidx.compose.ui.geometry.Offset(sunX, sunY)
-                    )
-                } else {
-                    // Golden Crescent Moon
-                    drawCircle(
-                        color = Color(0xFFF59E0B), // same stable amber gold
-                        radius = 13.dp.toPx(),
-                        center = androidx.compose.ui.geometry.Offset(sunX, sunY)
-                    )
-                    drawCircle(
-                        color = Color(0xFFF1F5F9), // Match background of the container
-                        radius = 11.dp.toPx(),
-                        center = androidx.compose.ui.geometry.Offset(sunX - 4.dp.toPx(), sunY - 2.dp.toPx())
-                    )
-                }
-            }
             
             // Labels for Sunrise and Sunset at bottom
             Row(
@@ -992,7 +914,7 @@ fun UnifiedHeroCard(state: com.example.viewmodel.ViewState, onNavigateToPrayerDe
                 verticalAlignment = Alignment.Bottom
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Outlined.WbTwilight, contentDescription = "Sunrise", tint = if (isDay) Color(0xFFF97316) else Color(0xFF4F46E5), modifier = Modifier.size(20.dp))
+                    Icon(Icons.Outlined.WbTwilight, contentDescription = "Sunrise", tint = Color(0xFFF59E0B), modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         if (GlobalLanguage.isEnglish) "Sunrise" else "সূর্যোদয়",
@@ -1007,7 +929,7 @@ fun UnifiedHeroCard(state: com.example.viewmodel.ViewState, onNavigateToPrayerDe
                     )
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Outlined.WbSunny, contentDescription = "Sunset", tint = if (isDay) Color(0xFFF97316) else Color(0xFF4F46E5), modifier = Modifier.size(20.dp))
+                    Icon(Icons.Outlined.WbSunny, contentDescription = "Sunset", tint = Color(0xFFEA580C), modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         if (GlobalLanguage.isEnglish) "Sunset" else "সূর্যাস্ত",
@@ -1085,7 +1007,7 @@ fun HomeScreen(
                     )
                 }
                 
-                // Location Badge: styled beautifully with a light green background/border and a refresh button next to it
+                // Location Badge: styled beautifully with a light green background/border
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(top = 4.dp)
@@ -1117,24 +1039,6 @@ fun HomeScreen(
                             contentDescription = "Expand Location",
                             tint = PrimaryGreen,
                             modifier = Modifier.size(13.dp)
-                        )
-                    }
-                    
-                    Spacer(modifier = Modifier.width(6.dp))
-                    
-                    // Refresh Location Button
-                    Box(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .background(Color(0xFFE2E8F0), CircleShape)
-                            .clickable { onRefreshLocation() },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Refresh Location",
-                            tint = Color(0xFF475569),
-                            modifier = Modifier.size(14.dp)
                         )
                     }
                 }
@@ -1275,10 +1179,169 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Salat Times Section (Nafal, Farz & Forbidden)
+        // Salat Times Section (Nafal & Farz)
         SalatTimesCard(state)
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Forbidden Prayer Times Section (Full Width, directly above the Bottom Navigation Bar)
+        val isEng = GlobalLanguage.isEnglish
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = Color(0xFFFEF2F2), // Elegant soft red/rose background indicating forbidden times
+            border = BorderStroke(1.dp, Color(0xFFEF4444).copy(alpha = 0.2f))
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 14.dp)
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Info,
+                        contentDescription = null,
+                        tint = Color(0xFFEF4444),
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(
+                        text = if (isEng) "Forbidden Prayer Times" else "নিষিদ্ধ সালাতের সময়",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF991B1B)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // 3 Columns Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // Sunrise Column
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.WbTwilight,
+                            contentDescription = null,
+                            tint = Color(0xFFEF4444),
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = if (isEng) "Sunrise" else "সূর্যোদয়",
+                            color = Color(0xFF1E293B),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "${state.forbiddenSunrise} - ${state.forbiddenSunriseEnd}",
+                            color = Color(0xFFEF4444),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        if (state.forbiddenSunriseCountdown.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = state.forbiddenSunriseCountdown,
+                                color = Color.White,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier
+                                    .background(Color(0xFFEF4444), RoundedCornerShape(4.dp))
+                                    .padding(horizontal = 4.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+
+                    // Noon Column
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.WbSunny,
+                            contentDescription = null,
+                            tint = Color(0xFFEF4444),
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = if (isEng) "Noon" else "মধ্যাহ্ন",
+                            color = Color(0xFF1E293B),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "${state.forbiddenNoon} - ${state.forbiddenNoonEnd}",
+                            color = Color(0xFFEF4444),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        if (state.forbiddenNoonCountdown.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = state.forbiddenNoonCountdown,
+                                color = Color.White,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier
+                                    .background(Color(0xFFEF4444), RoundedCornerShape(4.dp))
+                                    .padding(horizontal = 4.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+
+                    // Sunset Column
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.WbTwilight,
+                            contentDescription = null,
+                            tint = Color(0xFFEF4444),
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = if (isEng) "Sunset" else "সূর্যাস্ত",
+                            color = Color(0xFF1E293B),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "${state.forbiddenSunset} - ${state.forbiddenSunsetEnd}",
+                            color = Color(0xFFEF4444),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        if (state.forbiddenSunsetCountdown.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = state.forbiddenSunsetCountdown,
+                                color = Color.White,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier
+                                    .background(Color(0xFFEF4444), RoundedCornerShape(4.dp))
+                                    .padding(horizontal = 4.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
