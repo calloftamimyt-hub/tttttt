@@ -58,6 +58,9 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontFamily
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.coroutineScope
+import android.net.Uri
+import coil.compose.rememberAsyncImagePainter
+import android.content.Context
 import kotlinx.coroutines.flow.*
 
 
@@ -75,6 +78,15 @@ class MainActivity : ComponentActivity() {
         } else if (intent != null && intent.action == Intent.ACTION_MAIN) {
             // If the user manually opens the app, clear any previous interception state
             interceptedPlatformName = null
+        }
+    }
+
+    private fun getBitmapFromUri(context: android.content.Context, uri: android.net.Uri): android.graphics.Bitmap? {
+        return try {
+            val inputStream = context.contentResolver.openInputStream(uri)
+            android.graphics.BitmapFactory.decodeStream(inputStream)
+        } catch (e: Exception) {
+            null
         }
     }
 
@@ -228,6 +240,10 @@ class MainActivity : ComponentActivity() {
                                                         
                                                         // Show push notification
                                                         val ctx = context
+                                                        val brandingPrefs = ctx.getSharedPreferences("app_branding", android.content.Context.MODE_PRIVATE)
+                                                        val customLogoUriStr = brandingPrefs.getString("app_logo_uri", null)
+                                                        val customLogoBitmap = customLogoUriStr?.let { Uri.parse(it) }?.let { getBitmapFromUri(ctx, it) }
+
                                                         val notifManager = ctx.getSystemService(android.content.Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
                                                         val builder = androidx.core.app.NotificationCompat.Builder(ctx, "halal_circle_notifs")
                                                             .setSmallIcon(R.drawable.ic_notification)
@@ -235,6 +251,11 @@ class MainActivity : ComponentActivity() {
                                                             .setContentText(notifBody)
                                                             .setPriority(androidx.core.app.NotificationCompat.PRIORITY_HIGH)
                                                             .setAutoCancel(true)
+                                                        
+                                                        if (customLogoBitmap != null) {
+                                                            builder.setLargeIcon(customLogoBitmap)
+                                                        }
+                                                        
                                                         notifManager.notify("alert_$docId".hashCode(), builder.build())
                                                     }
                                                 }
@@ -309,6 +330,10 @@ class MainActivity : ComponentActivity() {
                                                                 
                                                                 // Show local push notification
                                                                 val ctx = context
+                                                                val brandingPrefs = ctx.getSharedPreferences("app_branding", android.content.Context.MODE_PRIVATE)
+                                                                val customLogoUriStr = brandingPrefs.getString("app_logo_uri", null)
+                                                                val customLogoBitmap = customLogoUriStr?.let { Uri.parse(it) }?.let { getBitmapFromUri(ctx, it) }
+
                                                                 val notifManager = ctx.getSystemService(android.content.Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
                                                                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                                                                     val channel = android.app.NotificationChannel("halal_circle_notifs", "General Notifications", android.app.NotificationManager.IMPORTANCE_DEFAULT)
@@ -328,6 +353,11 @@ class MainActivity : ComponentActivity() {
                                                                     .setPriority(androidx.core.app.NotificationCompat.PRIORITY_DEFAULT)
                                                                     .setAutoCancel(true)
                                                                     .setContentIntent(notifyPendingIntent)
+                                                                
+                                                                if (customLogoBitmap != null) {
+                                                                    builder.setLargeIcon(customLogoBitmap)
+                                                                }
+
                                                                 notifManager.notify(remoteId.hashCode(), builder.build())
                                                             }
                                                         }
@@ -1001,20 +1031,36 @@ fun HomeScreen(
                 verticalAlignment = Alignment.Top
             ) {
             // Header Title and Location
+            val context = LocalContext.current
+            val brandingPrefs = remember { context.getSharedPreferences("app_branding", Context.MODE_PRIVATE) }
+            val customLogoUriStr = brandingPrefs.getString("app_logo_uri", null)
+            val customLogoUri = remember(customLogoUriStr) { customLogoUriStr?.let { Uri.parse(it) } }
+
             Column(
                 modifier = Modifier.padding(top = 8.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_app_logo_asset),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(34.dp)
-                            .clip(RoundedCornerShape(8.dp)),
-                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                    )
+                    if (customLogoUri != null) {
+                        Image(
+                            painter = rememberAsyncImagePainter(customLogoUri),
+                            contentDescription = "App Logo",
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_app_logo_asset),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                        )
+                    }
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = "Muslim Companion",

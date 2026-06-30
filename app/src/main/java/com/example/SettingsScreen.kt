@@ -29,6 +29,17 @@ import com.example.viewmodel.SettingsViewModel
 import com.example.viewmodel.AppLanguages
 import com.example.ui.theme.*
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.rememberAsyncImagePainter
+import android.net.Uri
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.ui.platform.LocalContext
+import android.content.Intent
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
@@ -42,6 +53,30 @@ fun SettingsScreen(
     val context = LocalContext.current
     val isEng = GlobalLanguage.isEnglish
     val scrollState = rememberScrollState()
+
+    // Logo management
+    val logoPrefs = remember { context.getSharedPreferences("app_branding", Context.MODE_PRIVATE) }
+    var selectedLogoUri by remember { mutableStateOf(logoPrefs.getString("app_logo_uri", null)?.let { Uri.parse(it) }) }
+
+    val logoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        uri?.let {
+            try {
+                // Request persistent permission for the URI
+                context.contentResolver.takePersistableUriPermission(
+                    it,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+                selectedLogoUri = it
+                logoPrefs.edit().putString("app_logo_uri", it.toString()).apply()
+            } catch (e: Exception) {
+                // Fallback if persistable permission fails
+                selectedLogoUri = it
+                logoPrefs.edit().putString("app_logo_uri", it.toString()).apply()
+            }
+        }
+    }
 
     // Retrieve settings state from shared preferences or viewModel
     val selectedCountryCode = viewModel?.selectedCountryCode?.collectAsState()?.value ?: "BD"
@@ -310,7 +345,87 @@ fun SettingsScreen(
                 }
             }
 
-            // 3. Audio & Notifications Section
+            // 3. App Branding Section
+            Text(
+                text = if (isEng) "App Branding" else "অ্যাপ ব্র্যান্ডিং",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextDark,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 20.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            ) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.Image, contentDescription = null, tint = Color(0xFFF59E0B))
+                            Column {
+                                Text(
+                                    text = if (isEng) "Application Logo" else "অ্যাপ্লিকেশন লোগো",
+                                    fontSize = 13.5.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color(0xFF1E293B)
+                                )
+                                Text(
+                                    text = if (isEng) "Upload high-res logo for app-wide use" else "অ্যাপ জুড়ে ব্যবহারের জন্য হাই-রেজ লোগো আপলোড করুন",
+                                    fontSize = 11.sp,
+                                    color = TextGray
+                                )
+                            }
+                        }
+
+                        Button(
+                            onClick = { logoPickerLauncher.launch(arrayOf("image/*")) },
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1F5F9)),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = if (isEng) "Change" else "পরিবর্তন",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF475569)
+                            )
+                        }
+                    }
+
+                    if (selectedLogoUri != null) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(64.dp)
+                                .background(Color(0xFFF8FAFC), RoundedCornerShape(8.dp))
+                                .padding(4.dp)
+                        ) {
+                            Image(
+                                painter = rememberAsyncImagePainter(selectedLogoUri),
+                                contentDescription = "Logo Preview",
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(6.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
+                }
+            }
+
+            // 4. Audio & Notifications Section
             Text(
                 text = if (isEng) "Sound & Notifications" else "শব্দ ও নোটিফিকেশন",
                 fontSize = 15.sp,

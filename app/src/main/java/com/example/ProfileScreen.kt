@@ -37,6 +37,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
+import coil.compose.rememberAsyncImagePainter
 import com.example.ui.theme.*
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -387,14 +388,29 @@ fun ProfileScreen(
                                         showBorder = false
                                     )
                                 } else {
-                                    Image(
-                                        painter = painterResource(id = R.drawable.ic_app_logo_asset),
-                                        contentDescription = "App Logo",
-                                        modifier = Modifier
-                                            .size(86.dp)
-                                            .clip(CircleShape),
-                                        contentScale = ContentScale.Crop
-                                    )
+                                    val brandingPrefs = remember { context.getSharedPreferences("app_branding", Context.MODE_PRIVATE) }
+                                    val customLogoUriStr = brandingPrefs.getString("app_logo_uri", null)
+                                    val customLogoUri = remember(customLogoUriStr) { customLogoUriStr?.let { Uri.parse(it) } }
+
+                                    if (customLogoUri != null) {
+                                        Image(
+                                            painter = rememberAsyncImagePainter(customLogoUri),
+                                            contentDescription = "App Logo",
+                                            modifier = Modifier
+                                                .size(86.dp)
+                                                .clip(CircleShape),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    } else {
+                                        Image(
+                                            painter = painterResource(id = R.drawable.ic_app_logo_asset),
+                                            contentDescription = "App Logo",
+                                            modifier = Modifier
+                                                .size(86.dp)
+                                                .clip(CircleShape),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
                                 }
                             }
                         }
