@@ -20,7 +20,7 @@ jobs:
       - name: Build Release Bundle (AAB)
         run: |
           gradle bundleRelease \
-            -Pandroid.injected.signing.store.file=tmkey.jks \
+            -Pandroid.injected.signing.store.file=$rootDir/app/tmkey.jks \
             -Pandroid.injected.signing.store.password=CallOfTamim2345617859Tanjil@#yt@#67Tuli@# \
             -Pandroid.injected.signing.store.type=PKCS12 \
             -Pandroid.injected.signing.key.alias=releasekey \
