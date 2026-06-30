@@ -63,6 +63,7 @@ android {
             enableV1Signing = true
             enableV2Signing = true
         }
+}
 
   buildTypes {
     release {
