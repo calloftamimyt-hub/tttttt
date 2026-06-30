@@ -17,6 +17,18 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Generate Fresh Keystore
+        run: |
+          keytool -genkeypair -v \
+            -keystore app/tmkey.jks \
+            -alias releasekey \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass tamim1234 \
+            -keypass tamim1234 \
+            -dname "CN=Tamim, O=App, C=BD"
+
       - name: Build Release Bundle (AAB)
         run: gradle bundleRelease --stacktrace
 
