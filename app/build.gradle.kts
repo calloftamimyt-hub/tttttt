@@ -56,14 +56,14 @@ android {
     }
     // Placeholder release configuration. Update with actual keystore details for production.
     create("releaseConfig") {
-            storeFile = file("tmkey.jks")
-            storePassword = "CallOfTamim2345617859Tanjil@#yt@#67Tuli@#"
-            keyAlias = "releasekey"
-            keyPassword = "CallOfTamim2345617859Tanjil@#yt@#67Tuli@#"
-            enableV1Signing = true
-            enableV2Signing = true
-        }
-}
+      storeFile = file(System.getenv("KEYSTORE_PATH") ?: "${rootDir}/release.keystore")
+      storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "halalcircle"
+      keyAlias = System.getenv("KEY_ALIAS") ?: "release"
+      keyPassword = System.getenv("KEY_PASSWORD") ?: "halalcircle"
+      enableV1Signing = true
+      enableV2Signing = true
+    }
+  }
 
   buildTypes {
     release {

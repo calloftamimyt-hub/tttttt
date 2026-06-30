@@ -40,19 +40,19 @@ fun SalatTimesCard(state: ViewState) {
             if (isEng) timeStr else timeStr.toBengali()
         }
 
-        // Single Premium Card
+        // Single Premium Card: Edge-to-Edge, Compact for Social Feed style
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 6.dp),
-            shape = RoundedCornerShape(16.dp),
+                .padding(vertical = 1.dp), // Minimal gap for "connected" feel
+            shape = androidx.compose.ui.graphics.RectangleShape, // Edge-to-edge
             colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(14.dp)
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 // Fard Prayers Section Header
                 Row(
@@ -64,22 +64,22 @@ fun SalatTimesCard(state: ViewState) {
                         imageVector = Icons.Outlined.AccessTime,
                         contentDescription = null,
                         tint = Color(0xFF10B982),
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(16.dp)
                     )
                     Text(
                         text = if (isEng) "Five Fard Prayers" else "পাঁচ ওয়াক্ত ফরজ নামাজ",
-                        fontSize = 14.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF1E293B)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 // Fard Prayers List (Slim, Compact, Full Width)
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(2.dp) // Even tighter spacing
                 ) {
                     SalatRowPremium(
                         icon = Icons.Outlined.WbTwilight,
@@ -120,17 +120,11 @@ fun SalatTimesCard(state: ViewState) {
 
                 // Decorative Divider
                 Spacer(modifier = Modifier.height(14.dp))
-                Row(
+                HorizontalDivider(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(0.6.dp)
-                            .background(Color(0xFFE2E8F0))
-                    )
-                }
+                    thickness = 0.5.dp,
+                    color = Color(0xFFF1F5F9)
+                )
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Nafil Salat Section Header
@@ -143,11 +137,11 @@ fun SalatTimesCard(state: ViewState) {
                         imageVector = Icons.Outlined.AutoAwesome,
                         contentDescription = null,
                         tint = Color(0xFF3B82F6),
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(16.dp)
                     )
                     Text(
                         text = if (isEng) "Nafil Salat" else "নফল নামাজ",
-                        fontSize = 14.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF1E293B)
                     )
@@ -158,7 +152,7 @@ fun SalatTimesCard(state: ViewState) {
                 // Nafil Salat List (Vertical List)
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     SalatRowPremium(
                         icon = Icons.Outlined.WbTwilight,
@@ -277,8 +271,8 @@ fun SalatRowPremium(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(containerBg, shape = RoundedCornerShape(10.dp))
-            .padding(vertical = 8.dp, horizontal = 12.dp),
+            .background(containerBg, shape = RoundedCornerShape(8.dp))
+            .padding(vertical = 6.dp, horizontal = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Icon
@@ -286,16 +280,16 @@ fun SalatRowPremium(
             imageVector = icon,
             contentDescription = null,
             tint = iconColor,
-            modifier = Modifier.size(16.dp)
+            modifier = Modifier.size(15.dp)
         )
 
-        Spacer(modifier = Modifier.width(10.dp))
+        Spacer(modifier = Modifier.width(8.dp))
 
         // Name and Countdown
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = name,
-                fontSize = 12.5.sp,
+                fontSize = 12.sp,
                 fontWeight = fontWeight,
                 color = nameColor,
                 maxLines = 1
@@ -303,7 +297,7 @@ fun SalatRowPremium(
             if (countdown.isNotEmpty()) {
                 Text(
                     text = countdown,
-                    fontSize = 9.5.sp,
+                    fontSize = 9.sp,
                     color = if (isActive) Color(0xFF10B982) else Color(0xFF64748B),
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(top = 1.dp)
@@ -314,7 +308,7 @@ fun SalatRowPremium(
         // Time Value
         Text(
             text = time,
-            fontSize = 13.sp,
+            fontSize = 12.5.sp,
             fontWeight = FontWeight.Bold,
             color = timeColor,
             maxLines = 1

@@ -845,14 +845,14 @@ fun UnifiedHeroCard(state: com.example.viewmodel.ViewState, onNavigateToPrayerDe
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .padding(vertical = 1.dp)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ) { onNavigateToPrayerDetails() },
-        shape = RoundedCornerShape(24.dp),
+        shape = androidx.compose.ui.graphics.RectangleShape,
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp)
     ) {
         Box(
             modifier = Modifier
@@ -982,16 +982,24 @@ fun HomeScreen(
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF1F5F9)) // Light gray "feed" background
+            .verticalScroll(rememberScrollState())
     ) {
         // App Bar (Top row: Clickable App Name with Quick Action Icons aligned perfectly on the right)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = Color.White,
+            shadowElevation = 0.5.dp
         ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
             // Header Title and Location
             Column(
                 modifier = Modifier.padding(top = 8.dp)
@@ -1138,15 +1146,21 @@ fun HomeScreen(
                 )
             }
         }
+    }
 
-        // Unified Hero Section (Sun/Moon Arc + Countdown)
-        UnifiedHeroCard(state, onNavigateToPrayerDetails)
+    // Unified Hero Section (Sun/Moon Arc + Countdown)
+    UnifiedHeroCard(state, onNavigateToPrayerDetails)
 
-        // Sub info (Sehri / Iftar Countdown)
+    // Sub info (Sehri / Iftar Countdown) - Slim Feed Card
+    Surface(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 1.dp),
+        color = Color.White,
+        shadowElevation = 0.5.dp
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             val progressPercentInt = (state.specialCountdownProgress * 100).toInt()
@@ -1176,32 +1190,33 @@ fun HomeScreen(
                 time = subInfoTime
             )
         }
+    }
 
-        Spacer(modifier = Modifier.height(20.dp))
+    Spacer(modifier = Modifier.height(4.dp))
 
-        // Salat Times Section (Nafal & Farz)
-        SalatTimesCard(state)
+    // Salat Times Section (Nafal & Farz)
+    SalatTimesCard(state)
 
-        Spacer(modifier = Modifier.height(16.dp))
+    Spacer(modifier = Modifier.height(4.dp))
 
-        // Forbidden Prayer Times Section (Full Width, directly above the Bottom Navigation Bar)
-        val isEng = GlobalLanguage.isEnglish
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = Color(0xFFFEF2F2), // Elegant soft red/rose background indicating forbidden times
-            border = BorderStroke(1.dp, Color(0xFFEF4444).copy(alpha = 0.2f))
+    // Forbidden Prayer Times Section (Full Width Feed Style)
+    val isEng = GlobalLanguage.isEnglish
+    Surface(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 1.dp),
+        color = Color(0xFFFFF1F2), // Very soft red
+        shadowElevation = 0.5.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 14.dp)
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Header
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
                     Icon(
                         imageVector = Icons.Outlined.Info,
                         contentDescription = null,
