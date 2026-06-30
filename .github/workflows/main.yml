@@ -30,8 +30,8 @@ jobs:
             -keysize 2048 \
             -validity 10000 \
             -storetype JKS \
-            -storepass tamim1234 \
-            -keypass tamim1234 \
+            -storepass CallOfTamim2345617859Tanjil@#yt@#67Tuli@# \
+            -keypass CallOfTamim2345617859Tanjil@#yt@#67Tuli@# \
             -dname "CN=Tamim, O=App, C=BD"
 
       - name: Build Release Bundle (AAB)
