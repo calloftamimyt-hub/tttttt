@@ -221,7 +221,7 @@ class MainActivity : ComponentActivity() {
                                                             body = notifBody,
                                                             timestamp = System.currentTimeMillis(),
                                                             type = "GENERAL",
-                                                            actorName = data["author"] as? String ?: "Halal Circle",
+                                                            actorName = data["author"] as? String ?: "Muslim Companion",
                                                             remoteId = "alert_$docId"
                                                         )
                                                         notificationDao.insertNotification(entity)
@@ -230,7 +230,7 @@ class MainActivity : ComponentActivity() {
                                                         val ctx = context
                                                         val notifManager = ctx.getSystemService(android.content.Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
                                                         val builder = androidx.core.app.NotificationCompat.Builder(ctx, "halal_circle_notifs")
-                                                            .setSmallIcon(R.drawable.ic_launcher_foreground)
+                                                            .setSmallIcon(R.drawable.ic_notification)
                                                             .setContentTitle(notifTitle)
                                                             .setContentText(notifBody)
                                                             .setPriority(androidx.core.app.NotificationCompat.PRIORITY_HIGH)
@@ -322,7 +322,7 @@ class MainActivity : ComponentActivity() {
                                                                     ctx, 0, notifyIntent, android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
                                                                 )
                                                                 val builder = androidx.core.app.NotificationCompat.Builder(ctx, "halal_circle_notifs")
-                                                                    .setSmallIcon(R.drawable.ic_launcher_foreground)
+                                                                    .setSmallIcon(R.drawable.ic_notification)
                                                                     .setContentTitle(entity.title)
                                                                     .setContentText(entity.body)
                                                                     .setPriority(androidx.core.app.NotificationCompat.PRIORITY_DEFAULT)
@@ -1007,10 +1007,19 @@ fun HomeScreen(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_app_logo_asset),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(34.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "Halal Circle",
+                        text = "Muslim Companion",
                         fontWeight = FontWeight.ExtraBold,
-                        fontSize = 22.sp,
+                        fontSize = 20.sp,
                         color = PrimaryGreen
                     )
                 }

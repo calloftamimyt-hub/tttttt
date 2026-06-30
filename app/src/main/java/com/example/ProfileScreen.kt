@@ -35,6 +35,8 @@ import com.example.ui.LocalAppStrings
 import com.example.database.DailyTracker
 import java.text.SimpleDateFormat
 import java.util.Locale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
 import com.example.ui.theme.*
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -377,12 +379,23 @@ fun ProfileScreen(
                                     .border(1.dp, Color(0xFFE5E7EB), CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
-                                ProfileLogoDisplay(
-                                    modifier = Modifier.size(86.dp),
-                                    userId = currentUser?.id ?: "",
-                                    iconSizeDp = 44,
-                                    showBorder = false
-                                )
+                                if (currentUser != null) {
+                                    ProfileLogoDisplay(
+                                        modifier = Modifier.size(86.dp),
+                                        userId = currentUser?.id ?: "",
+                                        iconSizeDp = 44,
+                                        showBorder = false
+                                    )
+                                } else {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.ic_app_logo_asset),
+                                        contentDescription = "App Logo",
+                                        modifier = Modifier
+                                            .size(86.dp)
+                                            .clip(CircleShape),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
                             }
                         }
                         
@@ -403,7 +416,7 @@ fun ProfileScreen(
                         } else {
                             // When not logged in: show the application name "Halal Circle"
                             Text(
-                                text = if (isEn) "Halal Circle" else "হালাল সার্কেল",
+                                text = if (isEn) "Muslim Companion" else "মুসলিম কম্প্যানিয়ন",
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.Bold,
                                 textAlign = TextAlign.Center,
