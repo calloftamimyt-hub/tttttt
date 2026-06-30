@@ -1,0 +1,33 @@
+name: Build Play Store AAB
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build Release Bundle (AAB)
+        run: |
+          gradle bundleRelease \
+            -Pandroid.injected.signing.store.file=app/tmkey.jks \
+            -Pandroid.injected.signing.store.password=CallOfTamim2345617859Tanjil@#yt@#67Tuli@# \
+            -Pandroid.injected.signing.key.alias=releasekey \
+            -Pandroid.injected.signing.key.password=CallOfTamim2345617859Tanjil@#yt@#67Tuli@#\
+            --stacktrace
+
+      - name: Upload Play Store AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: play-store-bundle
+          path: app/build/outputs/bundle/release/*.aab
