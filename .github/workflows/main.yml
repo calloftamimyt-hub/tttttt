@@ -18,14 +18,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Build Release Bundle (AAB)
-        run: |
-          gradle bundleRelease \
-            -Pandroid.injected.signing.store.file=$rootDir/app/tmkey.jks \
-            -Pandroid.injected.signing.store.password=CallOfTamim2345617859Tanjil@#yt@#67Tuli@# \
-            -Pandroid.injected.signing.store.type=PKCS12 \
-            -Pandroid.injected.signing.key.alias=releasekey \
-            -Pandroid.injected.signing.key.password=CallOfTamim2345617859Tanjil@#yt@#67Tuli@# \
-            --stacktrace
+        run: ./gradlew bundleRelease --stacktrace
 
       - name: Upload Play Store AAB
         uses: actions/upload-artifact@v4
