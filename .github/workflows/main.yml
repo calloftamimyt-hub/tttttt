@@ -18,7 +18,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Build Release Bundle (AAB)
-        run: ./gradlew bundleRelease --stacktrace
+        run: gradle bundleRelease --stacktrace
 
       - name: Upload Play Store AAB
         uses: actions/upload-artifact@v4
