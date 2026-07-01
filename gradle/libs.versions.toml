@@ -45,6 +45,7 @@ googleServices = "4.5.0"
 media3 = "1.4.1"
 mapsCompose = "4.4.1"
 playServicesMaps = "18.2.0"
+adhan = "1.2.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -111,6 +112,7 @@ ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref =
 ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
+adhan = { group = "com.batoulapps.adhan", name = "adhan", version.ref = "adhan" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

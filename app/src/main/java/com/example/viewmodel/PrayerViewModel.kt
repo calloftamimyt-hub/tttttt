@@ -590,11 +590,16 @@ class PrayerViewModel : ViewModel() {
             android.util.Log.d("PrayerViewModel", "startCountdownTimer job started successfully")
             while(true) {
                 try {
-                    val times = _state.value.prayerTimes ?: PrayerCalculator.calculatePrayerTimes(lastLat, lastLng, lastOffset, lastMadhab)
-                    val cal = Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"))
-                    var currentHourDec = cal.get(Calendar.HOUR_OF_DAY) + cal.get(Calendar.MINUTE)/60.0 + cal.get(Calendar.SECOND)/3600.0 + lastOffset
+                    val utcCal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+                    var currentHourDec = utcCal.get(Calendar.HOUR_OF_DAY) + 
+                                       utcCal.get(Calendar.MINUTE) / 60.0 + 
+                                       utcCal.get(Calendar.SECOND) / 3600.0 + 
+                                       lastOffset
+                    
                     while (currentHourDec < 0) currentHourDec += 24.0
                     while (currentHourDec >= 24) currentHourDec -= 24.0
+
+                    val times = _state.value.prayerTimes ?: PrayerCalculator.calculatePrayerTimes(lastLat, lastLng, lastOffset, lastMadhab)
                     
                     val sunriseHours = times.sunriseHours
                     val dhuhrHours = times.dhuhrHours
