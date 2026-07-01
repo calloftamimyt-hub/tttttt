@@ -1073,26 +1073,6 @@ fun HomeScreen(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (customLogoUri != null) {
-                        Image(
-                            painter = rememberAsyncImagePainter(customLogoUri),
-                            contentDescription = "App Logo",
-                            modifier = Modifier
-                                .size(34.dp)
-                                .clip(RoundedCornerShape(8.dp)),
-                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                        )
-                    } else {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_app_logo_asset),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(34.dp)
-                                .clip(RoundedCornerShape(8.dp)),
-                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = "Halal Circle",
                         fontWeight = FontWeight.ExtraBold,
