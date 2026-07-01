@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import com.example.ui.theme.*
 import com.example.viewmodel.ViewState
 import com.example.viewmodel.GlobalLanguage
+import com.example.viewmodel.toBengali
 
 data class PrayerQuad(val id: String, val name: String, val startTime: String, val endTime: String, val icon: ImageVector)
 
@@ -128,10 +129,12 @@ fun PrayerScreen(
                         "Isha" -> state.ishaCountdown
                         else -> ""
                     }
+                    val displayStart = if (GlobalLanguage.isEnglish) p.startTime else p.startTime.toBengali()
+                    val displayEnd = if (GlobalLanguage.isEnglish) p.endTime else p.endTime.toBengali()
                     UnifiedPrayerCard(
                         name = p.name,
-                        startTime = p.startTime,
-                        endTime = p.endTime,
+                        startTime = displayStart,
+                        endTime = displayEnd,
                         icon = p.icon,
                         isActive = isActive,
                         isAlarmOn = isAlarmOn,

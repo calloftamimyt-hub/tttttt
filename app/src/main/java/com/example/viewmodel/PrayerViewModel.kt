@@ -592,8 +592,10 @@ class PrayerViewModel : ViewModel() {
             while(true) {
                 try {
                     val times = _state.value.prayerTimes ?: PrayerCalculator.calculatePrayerTimes(lastLat, lastLng, lastOffset, lastMadhab)
-                    val cal = Calendar.getInstance()
-                    val currentHourDec = cal.get(Calendar.HOUR_OF_DAY) + cal.get(Calendar.MINUTE)/60.0 + cal.get(Calendar.SECOND)/3600.0
+                    val cal = Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"))
+                    var currentHourDec = cal.get(Calendar.HOUR_OF_DAY) + cal.get(Calendar.MINUTE)/60.0 + cal.get(Calendar.SECOND)/3600.0 + lastOffset
+                    while (currentHourDec < 0) currentHourDec += 24.0
+                    while (currentHourDec >= 24) currentHourDec -= 24.0
                     
                     val sunriseHours = times.sunriseHours
                     val dhuhrHours = times.dhuhrHours

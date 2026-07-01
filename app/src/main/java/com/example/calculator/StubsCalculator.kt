@@ -76,10 +76,12 @@ object PrayerCalculator {
             var hr = h
             while (hr < 0) hr += 24.0
             while (hr >= 24) hr -= 24.0
-            val totalMinutes = (hr * 60).toInt()
-            val hourPart = totalMinutes / 60
+            val totalMinutes = Math.round(hr * 60).toInt()
+            val hour24 = (totalMinutes / 60) % 24
             val minutePart = totalMinutes % 60
-            String.format("%02d:%02d", hourPart, minutePart)
+            val ampm = if (hour24 >= 12) "PM" else "AM"
+            val hour12 = if (hour24 % 12 == 0) 12 else hour24 % 12
+            String.format("%d:%02d %s", hour12, minutePart, ampm)
         }
         
         return PrayerTimes(
