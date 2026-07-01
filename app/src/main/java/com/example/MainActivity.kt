@@ -688,7 +688,10 @@ class MainActivity : ComponentActivity() {
                                  }
                                  if (isQiblaPageOpen) {
                                     QiblaCompassScreen(
-                                        onBack = { isQiblaPageOpen = false }
+                                        latitude = state.latitude,
+                                         longitude = state.longitude,
+                                         locationName = state.locationName,
+                                         onBack = { isQiblaPageOpen = false }
                                     )
                                 }
                                 AnimatedVisibility(
