@@ -5,9 +5,19 @@ import android.content.BroadcastReceiver
 import android.content.Intent
 import android.app.Service
 import android.os.IBinder
+import android.app.AlarmManager
+import android.app.PendingIntent
+import java.util.Calendar
+import java.util.Locale
+import com.example.calculator.PrayerCalculator
 
 class AlarmReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent) {}
+    override fun onReceive(context: Context, intent: Intent) {
+        val action = intent.action
+        if (action == Intent.ACTION_BOOT_COMPLETED || action == "android.intent.action.QUICKBOOT_POWERON") {
+            AlarmHelper.schedulePrayerReminders(context)
+        }
+    }
 }
 class AlarmService : Service() {
     override fun onBind(intent: Intent): IBinder? = null
@@ -24,7 +34,104 @@ object AlarmHelper {
         alarms: Map<String, Boolean> = emptyMap(),
         locationName: String = "",
         isAuto: Boolean = false
-    ) {}
+    ) {
+        // Trigger rescheduling our reminders when location or manual settings refresh
+        schedulePrayerReminders(context)
+    }
+
+    fun schedulePrayerReminders(context: Context) {
+        val alarmPrefs = context.getSharedPreferences("prayer_alarm_prefs", Context.MODE_PRIVATE)
+        val prayerPrefs = context.getSharedPreferences("prayer_prefs", Context.MODE_PRIVATE)
+        val madhab = prayerPrefs.getInt("madhab", 2)
+        val lat = alarmPrefs.getFloat("lat", 23.8103f).toDouble()
+        val lng = alarmPrefs.getFloat("lng", 90.4125f).toDouble()
+        val offset = alarmPrefs.getFloat("offset", 6.0f).toDouble()
+
+        val todayCal = Calendar.getInstance()
+        val todayTimes = PrayerCalculator.calculatePrayerTimes(lat, lng, offset, madhab, todayCal)
+
+        val tomorrowCal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 1) }
+        val tomorrowTimes = PrayerCalculator.calculatePrayerTimes(lat, lng, offset, madhab, tomorrowCal)
+
+        val prayers = listOf(
+            "Fajr" to Pair(todayTimes.fajrHours, tomorrowTimes.fajrHours),
+            "Dhuhr" to Pair(todayTimes.dhuhrHours, tomorrowTimes.dhuhrHours),
+            "Asr" to Pair(todayTimes.asrHours, tomorrowTimes.asrHours),
+            "Maghrib" to Pair(todayTimes.maghribHours, tomorrowTimes.maghribHours),
+            "Isha" to Pair(todayTimes.ishaHours, tomorrowTimes.ishaHours)
+        )
+
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
+        val now = System.currentTimeMillis()
+
+        prayers.forEachIndexed { index, (name, hoursPair) ->
+            val (todayHrs, tomorrowHrs) = hoursPair
+
+            // Calculate today's reminder time (10 minutes before prayer time)
+            val calToday = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            val todayTimeMs = calToday.timeInMillis + (todayHrs * 3600 * 1000).toLong()
+            val todayReminderMs = todayTimeMs - 10 * 60 * 1000
+
+            val targetMs: Long
+            if (todayReminderMs > now) {
+                targetMs = todayReminderMs
+            } else {
+                // Use tomorrow's prayer time minus 10 minutes
+                val calTomorrow = Calendar.getInstance().apply {
+                    add(Calendar.DAY_OF_YEAR, 1)
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+                val tomorrowTimeMs = calTomorrow.timeInMillis + (tomorrowHrs * 3600 * 1000).toLong()
+                targetMs = tomorrowTimeMs - 10 * 60 * 1000
+            }
+
+            // Create Intent targeting PrayerNotificationReceiver
+            val intent = Intent(context, PrayerNotificationReceiver::class.java).apply {
+                action = "com.example.ACTION_PRAYER_REMINDER"
+                putExtra("PRAYER_NAME", name)
+                putExtra("REMINDER_TIME_MS", targetMs)
+            }
+
+            val requestCode = 400 + index
+            val pendingIntent = PendingIntent.getBroadcast(
+                context,
+                requestCode,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            try {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                    alarmManager.setExactAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP,
+                        targetMs,
+                        pendingIntent
+                    )
+                } else {
+                    alarmManager.setExact(
+                        AlarmManager.RTC_WAKEUP,
+                        targetMs,
+                        pendingIntent
+                    )
+                }
+            } catch (e: Exception) {
+                // Fallback to inexact set if exact permission not granted
+                alarmManager.set(
+                    AlarmManager.RTC_WAKEUP,
+                    targetMs,
+                    pendingIntent
+                )
+            }
+        }
+    }
 }
 class SocialBlockerService : Service() {
     override fun onBind(intent: Intent): IBinder? = null
