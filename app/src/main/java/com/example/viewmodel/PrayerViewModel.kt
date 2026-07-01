@@ -238,9 +238,8 @@ class PrayerViewModel : ViewModel() {
     fun setLocationManually(context: Context, districtName: String, lat: Double, lng: Double) {
         lastLat = lat
         lastLng = lng
-        lastOffset = 6.0 // Note: We might need to get real timezone offset, maybe we can fetch it, but 6 is BST. Let's try to calculate offset from current time and lat/lng if we can, or just keep 6.0? Wait, TimeZone.getDefault() is better.
-        val timeZoneOffset = TimeZone.getDefault().getOffset(System.currentTimeMillis()) / (1000.0 * 60.0 * 60.0)
-        lastOffset = timeZoneOffset
+        val calculatedOffset = Math.round(lng / 15.0).toDouble()
+        lastOffset = calculatedOffset
         
         hasLocationData = true
         _state.update { 
@@ -377,10 +376,10 @@ class PrayerViewModel : ViewModel() {
             _state.update { it.copy(isLoading = true) }
             
             viewModelScope.launch(Dispatchers.IO) {
-                val timeZoneOffset = TimeZone.getDefault().getOffset(System.currentTimeMillis()) / (1000.0 * 60.0 * 60.0)
+                val calculatedOffset = Math.round(location.longitude / 15.0).toDouble()
                 lastLat = location.latitude
                 lastLng = location.longitude
-                lastOffset = timeZoneOffset
+                lastOffset = calculatedOffset
                 hasLocationData = true
 
                 // Try to resolve city name using Geocoder on background
@@ -505,11 +504,11 @@ class PrayerViewModel : ViewModel() {
                     val city = json.optString("city", if (GlobalLanguage.isEnglish) "Detected City" else "সনাক্তকৃত শহর")
                     val lat = json.getDouble("latitude")
                     val lng = json.getDouble("longitude")
-                    val timeZoneOffset = TimeZone.getDefault().getOffset(System.currentTimeMillis()) / (1000.0 * 60.0 * 60.0)
+                    val calculatedOffset = Math.round(lng / 15.0).toDouble()
                     
                     lastLat = lat
                     lastLng = lng
-                    lastOffset = timeZoneOffset
+                    lastOffset = calculatedOffset
                     hasLocationData = true
                     
                     val alarmPrefs = context.getSharedPreferences("prayer_alarm_prefs", Context.MODE_PRIVATE)
@@ -518,10 +517,10 @@ class PrayerViewModel : ViewModel() {
                         .putString("saved_district", city)
                         .putFloat("lat", lat.toFloat())
                         .putFloat("lng", lng.toFloat())
-                        .putFloat("offset", timeZoneOffset.toFloat())
+                        .putFloat("offset", calculatedOffset.toFloat())
                         .apply()
                         
-                    val times = PrayerCalculator.calculatePrayerTimes(lat, lng, timeZoneOffset, lastMadhab)
+                    val times = PrayerCalculator.calculatePrayerTimes(lat, lng, calculatedOffset, lastMadhab)
                     
                     withContext(Dispatchers.Main) {
                         calculateForbiddenTimes(times)
@@ -529,7 +528,7 @@ class PrayerViewModel : ViewModel() {
                             context = context, 
                             lat = lat, 
                             lng = lng, 
-                            timezoneOffsetHor = timeZoneOffset, 
+                            timezoneOffsetHor = calculatedOffset, 
                             alarms = _state.value.alarms,
                             locationName = city,
                             isAuto = true
@@ -587,7 +586,7 @@ class PrayerViewModel : ViewModel() {
 
     private fun startCountdownTimer() {
         timerJob?.cancel()
-        timerJob = viewModelScope.launch {
+        timerJob = viewModelScope.launch(Dispatchers.Default) {
             android.util.Log.d("PrayerViewModel", "startCountdownTimer job started successfully")
             while(true) {
                 try {
@@ -691,7 +690,12 @@ class PrayerViewModel : ViewModel() {
                     var diff = currentEndTime - currentHourDec
                     if (diff < 0) diff += 24.0
                     val totalDuration = currentEndTime - currentStartTime
-                    val progress = ((currentHourDec - currentStartTime) / totalDuration).coerceIn(0.0, 1.0).toFloat()
+                    val progress = if (totalDuration <= 0.0 || totalDuration.isNaN() || totalDuration.isInfinite()) {
+                        0f
+                    } else {
+                        val res = ((currentHourDec - currentStartTime) / totalDuration)
+                        if (res.isNaN() || res.isInfinite()) 0f else res.coerceIn(0.0, 1.0).toFloat()
+                    }
                     val nextPrayerRemainingVal = formatDiff(diff, isEng)
 
                     // Sehri / Iftar Countdown
@@ -717,7 +721,12 @@ class PrayerViewModel : ViewModel() {
 
                     val specDiff = targetSpecialHour - currentHourDec
                     val specTotal = targetSpecialHour - startSpecialHour
-                    val specProgress = ((currentHourDec - startSpecialHour) / specTotal).coerceIn(0.0, 1.0).toFloat()
+                    val specProgress = if (specTotal <= 0.0 || specTotal.isNaN() || specTotal.isInfinite()) {
+                        0f
+                    } else {
+                        val res = ((currentHourDec - startSpecialHour) / specTotal)
+                        if (res.isNaN() || res.isInfinite()) 0f else res.coerceIn(0.0, 1.0).toFloat()
+                    }
                     val specTimeStr = formatDiff(specDiff, isEng)
 
                     // Real-time Countdown Calculations for ALL items requested by user:
@@ -844,33 +853,35 @@ class PrayerViewModel : ViewModel() {
                         label + formatDiff(d, isEng)
                     }
 
-                    _state.update { 
-                        it.copy(
-                            currentHourDecimal = currentHourDec,
-                            currentPrayerName = currentName, 
-                            currentPrayerNameBen = currentNameBen,
-                            nextPrayerName = nextName,
-                            nextPrayerNameBen = nextNameBen,
-                            rotatingNames = rotating,
-                            nextPrayerRemaining = nextPrayerRemainingVal,
-                            timerProgress = progress,
-                            specialCountdownLabel = specialLabel,
-                            specialCountdownTime = specTimeStr,
-                            specialCountdownProgress = specProgress,
-                            fajrCountdown = fajrCountdownVal,
-                            dhuhrCountdown = dhuhrCountdownVal,
-                            asrCountdown = asrCountdownVal,
-                            maghribCountdown = maghribCountdownVal,
-                            ishaCountdown = ishaCountdownVal,
-                            sehriCountdown = sehriCountdownVal,
-                            iftarCountdown = iftarCountdownVal,
-                            sunriseCountdown = sunriseCountdownVal,
-                            sunsetCountdown = sunsetCountdownVal,
-                            forbiddenSunriseCountdown = fSunriseCountdownVal,
-                            forbiddenNoonCountdown = fNoonCountdownVal,
-                            forbiddenSunsetCountdown = fSunsetCountdownVal,
-                            isIftarCountdown = isIftarCountdownVal
-                        )
+                    withContext(Dispatchers.Main) {
+                        _state.update { 
+                            it.copy(
+                                currentHourDecimal = currentHourDec,
+                                currentPrayerName = currentName, 
+                                currentPrayerNameBen = currentNameBen,
+                                nextPrayerName = nextName,
+                                nextPrayerNameBen = nextNameBen,
+                                rotatingNames = rotating,
+                                nextPrayerRemaining = nextPrayerRemainingVal,
+                                timerProgress = progress,
+                                specialCountdownLabel = specialLabel,
+                                specialCountdownTime = specTimeStr,
+                                specialCountdownProgress = specProgress,
+                                fajrCountdown = fajrCountdownVal,
+                                dhuhrCountdown = dhuhrCountdownVal,
+                                asrCountdown = asrCountdownVal,
+                                maghribCountdown = maghribCountdownVal,
+                                ishaCountdown = ishaCountdownVal,
+                                sehriCountdown = sehriCountdownVal,
+                                iftarCountdown = iftarCountdownVal,
+                                sunriseCountdown = sunriseCountdownVal,
+                                sunsetCountdown = sunsetCountdownVal,
+                                forbiddenSunriseCountdown = fSunriseCountdownVal,
+                                forbiddenNoonCountdown = fNoonCountdownVal,
+                                forbiddenSunsetCountdown = fSunsetCountdownVal,
+                                isIftarCountdown = isIftarCountdownVal
+                            )
+                        }
                     }
                 } catch (e: Exception) {
                     android.util.Log.e("PrayerViewModel", "Error in countdown loop", e)
