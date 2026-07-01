@@ -27,6 +27,7 @@ import com.example.viewmodel.toBengali
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.example.ui.theme.*
 
 @Composable
 fun SalatTimesCard(state: ViewState) {
@@ -34,7 +35,7 @@ fun SalatTimesCard(state: ViewState) {
         val context = LocalContext.current
         val isEng = GlobalLanguage.isEnglish
         val primaryGreen = Color(0xFF10B982)
-        val lightGreen = Color(0xFFECFDF5)
+        val lightGreen = if (isDarkModeGlobal) Color(0xFF064E3B) else Color(0xFFECFDF5)
 
         val trackerPrefs = remember { context.getSharedPreferences("daily_tracker_prefs", Context.MODE_PRIVATE) }
         val dateStr = remember { SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()) }
@@ -117,7 +118,7 @@ fun SalatTimesCard(state: ViewState) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = CardBg),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp)
             ) {
                 Column(
@@ -228,7 +229,7 @@ fun SalatTimesCard(state: ViewState) {
                                         Icon(
                                             imageVector = prayer.icon,
                                             contentDescription = null,
-                                            tint = if (isActive) primaryGreen else Color(0xFF475569),
+                                            tint = if (isActive) primaryGreen else TextGray,
                                             modifier = Modifier.size(18.dp)
                                         )
                                         
@@ -236,7 +237,7 @@ fun SalatTimesCard(state: ViewState) {
                                             text = prayer.name,
                                             fontSize = 14.sp,
                                             fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.Bold,
-                                            color = if (isActive) primaryGreen else Color(0xFF1E293B)
+                                            color = if (isActive) primaryGreen else TextDark
                                         )
                                     }
                                     
@@ -245,7 +246,7 @@ fun SalatTimesCard(state: ViewState) {
                                         text = "${formatTimeNoAmPm(prayer.startTimeHours)} - ${formatTimeNoAmPm(prayer.endTimeHours)}",
                                         fontSize = 14.sp,
                                         fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.SemiBold,
-                                        color = if (isActive) primaryGreen else Color(0xFF334155),
+                                        color = if (isActive) primaryGreen else TextDark,
                                         modifier = Modifier.padding(end = 16.dp)
                                     )
                                     
@@ -257,7 +258,7 @@ fun SalatTimesCard(state: ViewState) {
                                         Icon(
                                             imageVector = if (isChecked) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
                                             contentDescription = null,
-                                            tint = if (isChecked) primaryGreen else Color(0xFFCBD5E1),
+                                            tint = if (isChecked) primaryGreen else (if (isDarkModeGlobal) Color(0xFF475569) else Color(0xFFCBD5E1)),
                                             modifier = Modifier.size(20.dp)
                                         )
                                     }
@@ -273,11 +274,11 @@ fun SalatTimesCard(state: ViewState) {
                                 ) {
                                     val trackColor = when {
                                         isActive -> primaryGreen.copy(alpha = 0.15f)
-                                        progress == 1f -> Color(0xFFE2E8F0)
-                                        else -> Color(0xFFF1F5F9)
+                                        progress == 1f -> if (isDarkModeGlobal) Color(0xFF334155) else Color(0xFFE2E8F0)
+                                        else -> BgLight
                                     }
                                     val barHeight = if (isActive) 5.dp else 2.dp
-                                    val progressColor = if (isActive) primaryGreen else if (progress == 1f) Color(0xFFCBD5E1) else Color.Transparent
+                                    val progressColor = if (isActive) primaryGreen else if (progress == 1f) (if (isDarkModeGlobal) Color(0xFF475569) else Color(0xFFCBD5E1)) else Color.Transparent
                                     
                                     Box(
                                         modifier = Modifier
@@ -318,7 +319,7 @@ fun SalatTimesCard(state: ViewState) {
                             text = if (isEng) "Makruh: ${formatTimeNoAmPm(makruhStart)}" else "মাকরুহ: ${formatTimeNoAmPm(makruhStart)}",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF475569)
+                            color = TextGray
                         )
                     }
                 }
@@ -328,7 +329,7 @@ fun SalatTimesCard(state: ViewState) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = CardBg),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp)
             ) {
                 Column(
@@ -339,7 +340,7 @@ fun SalatTimesCard(state: ViewState) {
                         text = if (isEng) "Nafil Prayers" else "নফল সালাত",
                         fontWeight = FontWeight.ExtraBold,
                         fontSize = 15.sp,
-                        color = Color(0xFF1E293B)
+                        color = TextDark
                     )
                     
                     Spacer(modifier = Modifier.height(12.dp))
@@ -370,7 +371,7 @@ fun SalatTimesCard(state: ViewState) {
                                     Text(
                                         text = prayer.first,
                                         fontSize = 14.sp,
-                                        color = Color(0xFF475569),
+                                        color = TextGray,
                                         fontWeight = FontWeight.Medium
                                     )
                                 }
@@ -379,7 +380,7 @@ fun SalatTimesCard(state: ViewState) {
                                     text = prayer.second,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = Color(0xFF1E293B)
+                                    color = TextDark
                                 )
                             }
                         }

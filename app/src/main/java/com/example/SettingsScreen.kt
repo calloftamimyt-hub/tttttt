@@ -131,7 +131,7 @@ fun SettingsScreen(
                     .fillMaxWidth()
                     .padding(bottom = 20.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = CardBg),
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
@@ -151,7 +151,7 @@ fun SettingsScreen(
                                     text = if (isEng) "App Language" else "অ্যাপের ভাষা",
                                     fontSize = 13.5.sp,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = Color(0xFF1E293B)
+                                    color = TextDark
                                 )
                                 Text(
                                     text = if (selectedLanguage == AppLanguages.ENGLISH) "English" else "বাংলা",
@@ -164,13 +164,13 @@ fun SettingsScreen(
                         // Toggle Language Button Group
                         Row(
                             modifier = Modifier
-                                .background(Color(0xFFF1F5F9), RoundedCornerShape(8.dp))
+                                .background(BgLight, RoundedCornerShape(8.dp))
                                 .padding(2.dp)
                         ) {
-                            val activeColor = Color.White
+                            val activeColor = CardBg
                             val inactiveColor = Color.Transparent
                             val activeTextColor = PrimaryGreen
-                            val inactiveTextColor = Color(0xFF475569)
+                            val inactiveTextColor = TextGray
 
                             Box(
                                 modifier = Modifier
@@ -228,7 +228,7 @@ fun SettingsScreen(
                     .fillMaxWidth()
                     .padding(bottom = 20.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = CardBg),
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
@@ -257,7 +257,7 @@ fun SettingsScreen(
                                     text = if (isEng) "Dark Mode" else "ডার্ক মোড",
                                     fontSize = 13.5.sp,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = Color(0xFF1E293B)
+                                    color = TextDark
                                 )
                                 Text(
                                     text = if (isEng) "Enable dark theme for the app" else "অ্যাপের জন্য ডার্ক থিম চালু করুন",

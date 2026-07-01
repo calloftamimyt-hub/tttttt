@@ -480,13 +480,13 @@ class MainActivity : ComponentActivity() {
                         val isDarkStatusBar = false
                         val isAuthPage = false
                         
-                        LaunchedEffect(isDarkStatusBar, isProfileOverlayOpen, isAuthPage, view) {
+                        LaunchedEffect(isDarkMode, isDarkStatusBar, isProfileOverlayOpen, isAuthPage, view) {
                             val window = (view.context as Activity).window
                             window.statusBarColor = android.graphics.Color.TRANSPARENT
-                            window.navigationBarColor = android.graphics.Color.WHITE
-                            // If profile/overlay is open, or on Auth page, we want dark icons on white/transparent status bar
-                            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = isProfileOverlayOpen || isAuthPage || !isDarkStatusBar
-                            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = true
+                            window.navigationBarColor = if (isDarkMode) android.graphics.Color.parseColor("#1E293B") else android.graphics.Color.WHITE
+                            // If profile/overlay is open, or on Auth page, we want dark icons on white/transparent status bar, except when in dark mode
+                            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !isDarkMode
+                            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !isDarkMode
                         }
 
                         LaunchedEffect(multiplePermissionsState.allPermissionsGranted, context) {
@@ -499,7 +499,7 @@ class MainActivity : ComponentActivity() {
 
                         Scaffold(
                             modifier = Modifier.fillMaxSize(),
-                            containerColor = if (isProfileOverlayOpen) Color.White else (if (isDarkStatusBar) Color.Black else BgLight),
+                            containerColor = if (isProfileOverlayOpen) CardBg else (if (isDarkStatusBar) Color.Black else BgLight),
                             bottomBar = { 
                                 if (showBottomBar) {
                                     AppBottomNavigation(selectedTab, isDark = isDarkStatusBar) { 
@@ -738,13 +738,13 @@ fun GlassStatusBarHeader() {
 
 @Composable
 fun AppBottomNavigation(selectedTab: String, isDark: Boolean, onTabSelected: (String) -> Unit) {
-    val navContainerColor = Color.White
+    val navContainerColor = CardBg
     val navUnselectedColor = TextGray
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(CardBg)
     ) {
         NavigationBar(
             containerColor = navContainerColor,
@@ -931,21 +931,21 @@ fun UnifiedHeroCard(
                 indication = null
             ) { onNavigateToPrayerDetails() },
         shape = androidx.compose.ui.graphics.RectangleShape,
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = CardBg),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(180.dp)
-                .background(Color.White)
+                .background(CardBg)
                 .padding(16.dp)
         ) {
             // Salat Countdown Circle (Positioned in the Center)
             Box(contentAlignment = Alignment.Center, modifier = Modifier.align(Alignment.Center).size(130.dp)) {
                 // Background circle
                 androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
-                    drawCircle(color = Color(0xFFF8FAFC))
+                    drawCircle(color = BgLight)
                 }
                 CircularProgressIndicator(
                     progress = { state.timerProgress },
@@ -953,7 +953,7 @@ fun UnifiedHeroCard(
                     color = PrimaryGreen,
                     strokeWidth = 6.dp,
                     strokeCap = StrokeCap.Round,
-                    trackColor = Color(0xFFF1F5F9)
+                    trackColor = BgLight
                 )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     val displayNames = if (state.rotatingNames.isNotEmpty()) state.rotatingNames else listOf(state.currentPrayerNameBen.ifEmpty { state.nextPrayerNameBen })
@@ -1084,13 +1084,13 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF1F5F9)) // Light gray "feed" background
+            .background(BgLight) // Adaptive "feed" background
             .verticalScroll(rememberScrollState())
     ) {
         // App Bar (Top row: Clickable App Name with Quick Action Icons aligned perfectly on the right)
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            color = Color.White,
+            color = CardBg,
             shadowElevation = 0.5.dp
         ) {
             Row(
@@ -1163,6 +1163,21 @@ fun HomeScreen(
                             imageVector = Icons.Outlined.AccessAlarm, 
                             contentDescription = "Alarms", 
                             tint = TextDark,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                    
+                    val themePrefs = remember { context.getSharedPreferences("app_theme_prefs", Context.MODE_PRIVATE) }
+                    IconButton(
+                        onClick = {
+                            val currentMode = themePrefs.getBoolean("dark_mode", false)
+                            themePrefs.edit().putBoolean("dark_mode", !currentMode).apply()
+                        }
+                    ) {
+                        Icon(
+                            imageVector = if (isDarkModeGlobal) Icons.Default.LightMode else Icons.Default.DarkMode,
+                            contentDescription = "Toggle Theme",
+                            tint = if (isDarkModeGlobal) Color(0xFFFFD700) else TextDark,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -1258,7 +1273,7 @@ fun HomeScreen(
     // Sub info (Sehri / Iftar & Live Countdown) - Slim Feed Card
     Surface(
         modifier = Modifier.fillMaxWidth().padding(vertical = 1.dp),
-        color = Color.White,
+        color = CardBg,
         shadowElevation = 0.5.dp
     ) {
         Row(
@@ -1281,7 +1296,7 @@ fun HomeScreen(
             ) {
                 Text(
                     text = sehriLastTimeDisp,
-                    color = Color.Black,
+                    color = TextDark,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -1299,7 +1314,7 @@ fun HomeScreen(
                 modifier = Modifier
                     .width(1.dp)
                     .height(35.dp)
-                    .background(Color(0xFFE2E8F0))
+                    .background(if (isDarkModeGlobal) Color(0xFF334155) else Color(0xFFE2E8F0))
             )
             
             // Column 2: Iftar Starts Time
@@ -1313,7 +1328,7 @@ fun HomeScreen(
             ) {
                 Text(
                     text = iftarTimeDisp,
-                    color = Color.Black,
+                    color = TextDark,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -1331,7 +1346,7 @@ fun HomeScreen(
                 modifier = Modifier
                     .width(1.dp)
                     .height(35.dp)
-                    .background(Color(0xFFE2E8F0))
+                    .background(if (isDarkModeGlobal) Color(0xFF334155) else Color(0xFFE2E8F0))
             )
             
             // Column 3: Live Countdown
@@ -1371,7 +1386,7 @@ fun HomeScreen(
     Card(
         modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = CardBg),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp)
     ) {
         Column(
@@ -1395,7 +1410,7 @@ fun HomeScreen(
                     text = if (isEng) "Forbidden Prayer Times" else "নিষিদ্ধ সালাতের সময়",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color(0xFF1E293B)
+                    color = TextDark
                 )
             }
 
@@ -1408,14 +1423,14 @@ fun HomeScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color(0xFFFFF1F2), RoundedCornerShape(8.dp))
+                            .background(if (isDarkModeGlobal) Color(0xFFEF4444).copy(alpha = 0.15f) else Color(0xFFFFF1F2), RoundedCornerShape(8.dp))
                             .padding(horizontal = 12.dp, vertical = 10.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = title,
-                            color = Color(0xFF1E293B),
+                            color = TextDark,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium
                         )
