@@ -32,7 +32,12 @@ object PrayerCalculator {
         calendar: Calendar = Calendar.getInstance()
     ): PrayerTimes {
         val coordinates = Coordinates(lat, lng)
-        val date = DateComponents.from(calendar.time)
+        
+        // Calculate the local date components for the target timezone offset
+        val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+        cal.time = calendar.time
+        cal.add(Calendar.MILLISECOND, (offset * 3600 * 1000).toInt())
+        val date = DateComponents(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH))
         
         // Use Muslim World League as default, common for Bangladesh
         val params = CalculationMethod.MUSLIM_WORLD_LEAGUE.parameters
@@ -45,16 +50,16 @@ object PrayerCalculator {
             if (date == null) return 0.0
             val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
             cal.time = date
-            // UTC time + offset
-            val utcHours = cal.get(Calendar.HOUR_OF_DAY) + cal.get(Calendar.MINUTE) / 60.0 + cal.get(Calendar.SECOND) / 3600.0
-            var localHours = utcHours + offset
-            while (localHours < 0) localHours += 24.0
-            while (localHours >= 24) localHours -= 24.0
-            return localHours
+            // UTC hours + offset
+            var h = cal.get(Calendar.HOUR_OF_DAY) + cal.get(Calendar.MINUTE) / 60.0 + cal.get(Calendar.SECOND) / 3600.0 + offset
+            while (h < 0) h += 24.0
+            while (h >= 24) h -= 24.0
+            return h
         }
         
         val formatTime = { h: Double ->
-            val totalMinutes = Math.round(h * 60).toInt()
+            val totalSeconds = Math.round(h * 3600).toInt()
+            val totalMinutes = totalSeconds / 60
             val hour24 = (totalMinutes / 60) % 24
             val minutePart = totalMinutes % 60
             val ampm = if (hour24 >= 12) "PM" else "AM"
