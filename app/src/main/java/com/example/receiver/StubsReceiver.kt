@@ -22,6 +22,9 @@ class AlarmReceiver : BroadcastReceiver() {
 class AlarmService : Service() {
     override fun onBind(intent: Intent): IBinder? = null
 }
+class SilentModeReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {}
+}
 object AlarmHelper {
     fun scheduleAlarms(context: Context) {}
     fun cancelAlarms(context: Context) {}
