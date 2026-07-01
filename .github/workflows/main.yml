@@ -27,8 +27,8 @@ jobs:
             -keysize 2048 \
             -validity 10000 \
             -storetype JKS \
-            -storepass "আপনার_পাসওয়ার্ড" \
-            -keypass "আপনার_পাসওয়ার্ড" \
+            -storepass "CallOfTamim2345617859Tanjil@#yt@#67Tuli@#" \
+            -keypass "CallOfTamim2345617859Tanjil@#yt@#67Tuli@#" \
             -dname "CN=Tamim, O=App, C=BD"
 
       - name: Build Release Bundle (AAB)
@@ -37,10 +37,14 @@ jobs:
       - name: Build Test APK
         run: gradle assembleRelease --stacktrace
 
+      - name: Clean and Collect Files
+        run: |
+          mkdir -p output_files
+          cp app/build/outputs/bundle/release/*.aab output_files/ 2>/dev/null || true
+          cp app/build/outputs/apk/release/*.apk output_files/ 2>/dev/null || true
+
       - name: Upload Files to GitHub
         uses: actions/upload-artifact@v4
         with:
           name: app-build-files
-          path: |
-            app/build/outputs/bundle/release/*.aab
-            app/build/outputs/apk/release/*.apk
+          path: output_files/
