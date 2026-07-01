@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -555,121 +556,94 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 2. Large category options (Cards)
-                Column(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                        
-                        // Action Row mapping to Full-Screen Tracker History Page
-                        ProfileOptionRow(
-                            title = if (com.example.viewmodel.GlobalLanguage.isEnglish) "Tracker" else "ট্র্যাকার",
-                            icon = Icons.Filled.CheckCircle,
-                            iconColor = PrimaryGreen, // Dark Green
-                            onClick = {
-                                showTrackerHistoryFullScreen = true
-                            }
-                        )
-
-                        // Auto Silent
-                        ProfileOptionRow(
-                            title = "অটো সাইলেন্ট",
-                            icon = if (isAutoSilentEnabled) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
-                            iconColor = Color(0xFF8B5CF6), // Royal Purple
-                            onClick = {
-                                showAutoSilentFullScreen = true
-                            }
-                        )
-
-                        // Social Media Blocker
-                        ProfileOptionRow(
-                            title = "সোশ্যাল মিডিয়া ব্লকার",
-                            icon = Icons.Filled.AppBlocking,
-                            iconColor = Color(0xFFF43F5E), // Rose Red
-                            onClick = {
-                                showSocialMediaBlockerFullScreen = true
-                            }
-                        )
-
-                        // Website Blocker
-                        ProfileOptionRow(
-                            title = "ওয়েবসাইট ব্লকার",
-                            icon = Icons.Filled.Block,
-                            iconColor = Color(0xFFEF4444), // Danger Red
-                            onClick = {
-                                showWebsiteBlockerFullScreen = true
-                            }
-                        )
-
-                        // Saved Duas
-                        ProfileOptionRow(
-                            title = "সেভ করা দোয়া",
-                            icon = Icons.Filled.Favorite,
-                            iconColor = Color(0xFFEC4899), // Pink
-                            onClick = {
-                                onNavigateToSavedDuas()
-                            }
-                        )
-
-                        // Bookmarked Ayahs
-                        ProfileOptionRow(
-                            title = "বুকমার্ক করা আয়াত",
-                            icon = Icons.Filled.MenuBook,
-                            iconColor = Color(0xFF0EA5E9), // Sky Blue
-                            onClick = {
-                                onNavigateToSavedAyahs()
-                            }
-                        )
-
-                        // Favorite Hadiths
-                        ProfileOptionRow(
-                            title = "সেভ করা হাদিস",
-                            icon = Icons.Filled.AutoStories,
-                            iconColor = PrimaryGreen, // Deep Green
-                            onClick = {
-                                onNavigateToSavedHadiths()
-                            }
-                        )
+                // 2. Large category options grouped into sections
+                ProfileSection(modifier = Modifier.padding(top = 8.dp)) {
+                    ProfileOptionItem(
+                        title = if (com.example.viewmodel.GlobalLanguage.isEnglish) "Tracker" else "ট্র্যাকার",
+                        icon = Icons.Filled.CheckCircle,
+                        iconColor = PrimaryGreen,
+                        onClick = { showTrackerHistoryFullScreen = true }
+                    )
+                    SectionDivider()
+                    ProfileOptionItem(
+                        title = "অটো সাইলেন্ট",
+                        icon = if (isAutoSilentEnabled) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
+                        iconColor = Color(0xFF8B5CF6),
+                        onClick = { showAutoSilentFullScreen = true }
+                    )
+                    SectionDivider()
+                    ProfileOptionItem(
+                        title = "সোশ্যাল মিডিয়া ব্লকার",
+                        icon = Icons.Filled.AppBlocking,
+                        iconColor = Color(0xFFF43F5E),
+                        onClick = { showSocialMediaBlockerFullScreen = true }
+                    )
+                    SectionDivider()
+                    ProfileOptionItem(
+                        title = "ওয়েবসাইট ব্লকার",
+                        icon = Icons.Filled.Block,
+                        iconColor = Color(0xFFEF4444),
+                        onClick = { showWebsiteBlockerFullScreen = true }
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+
+                ProfileSection {
+                    ProfileOptionItem(
+                        title = "সেভ করা দোয়া",
+                        icon = Icons.Filled.Favorite,
+                        iconColor = Color(0xFFEC4899),
+                        onClick = { onNavigateToSavedDuas() }
+                    )
+                    SectionDivider()
+                    ProfileOptionItem(
+                        title = "বুকমার্ক করা আয়াত",
+                        icon = Icons.Filled.MenuBook,
+                        iconColor = Color(0xFF0EA5E9),
+                        onClick = { onNavigateToSavedAyahs() }
+                    )
+                    SectionDivider()
+                    ProfileOptionItem(
+                        title = "সেভ করা হাদিস",
+                        icon = Icons.Filled.AutoStories,
+                        iconColor = PrimaryGreen,
+                        onClick = { onNavigateToSavedHadiths() }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // 3. Settings card
                 Text(
                     text = if (GlobalLanguage.isEnglish) "Settings" else "সেটিংস",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
-                    color = TextDark,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+                    fontSize = 13.sp,
+                    color = TextGray,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp)
                 )
 
-                Column(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                        ProfileOptionRow(
-                            title = if (GlobalLanguage.isEnglish) "App Settings" else "অ্যাপ সেটিংস",
-                            icon = Icons.Filled.Settings,
-                            iconColor = Color(0xFF4B5563),
-                            onClick = onNavigateToSettings
-                        )
+                ProfileSection {
+                    ProfileOptionItem(
+                        title = if (GlobalLanguage.isEnglish) "App Settings" else "অ্যাপ সেটিংস",
+                        icon = Icons.Filled.Settings,
+                        iconColor = Color(0xFF4B5563),
+                        onClick = onNavigateToSettings
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Support Card
                 Text(
                     text = if (GlobalLanguage.isEnglish) "Support" else "সাপোর্ট",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
-                    color = TextDark,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+                    fontSize = 13.sp,
+                    color = TextGray,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp)
                 )
 
-                Column(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                ProfileSection {
                     val openUrl: (String) -> Unit = { url ->
                         try {
                             val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
@@ -679,132 +653,135 @@ fun ProfileScreen(
                         }
                     }
 
-                        ProfileOptionRow(
-                            title = "Support WhatsApp",
-                            icon = Icons.Filled.Chat,
-                            iconColor = Color(0xFF25D366),
-                            onClick = { 
-                                val message = "আসসালামু আলাইকুম, ইসলামিক অ্যাসিস্ট্যান্ট অ্যাপ থেকে যোগাযোগ করছি। আমার একটি সাহায্য প্রয়োজন।"
-                                openUrl("https://wa.me/8801909902319?text=${android.net.Uri.encode(message)}") 
-                            }
-                        )
-                        ProfileOptionRow(
-                            title = "Support Telegram",
-                            icon = Icons.Filled.Send,
-                            iconColor = Color(0xFF0088CC),
-                            onClick = { openUrl("https://t.me/calloftamim") }
-                        )
-                        ProfileOptionRow(
-                            title = "Facebook Group",
-                            icon = Icons.Filled.Groups,
-                            iconColor = Color(0xFF1877F2),
-                            onClick = { openUrl("https://www.facebook.com/share/g/184FQ3v2Rq/") }
-                        )
-                        ProfileOptionRow(
-                            title = "WhatsApp Channel",
-                            icon = Icons.Filled.Campaign,
-                            iconColor = Color(0xFF25D366),
-                            onClick = { openUrl("https://whatsapp.com/channel/0029Vb6cwrFCBtxJKy95Xh0S") }
-                        )
-                        ProfileOptionRow(
-                            title = "Telegram Group",
-                            icon = Icons.Filled.Forum,
-                            iconColor = Color(0xFF0088CC),
-                            onClick = { openUrl("https://t.me/halalcirclesupport") }
-                        )
-                        ProfileOptionRow(
-                            title = "Telegram Channel",
-                            icon = Icons.Filled.Campaign,
-                            iconColor = Color(0xFF0088CC),
-                            onClick = { openUrl("https://t.me/halalcircle") }
-                        )
+                    ProfileOptionItem(
+                        title = "Support WhatsApp",
+                        icon = Icons.Filled.Chat,
+                        iconColor = Color(0xFF25D366),
+                        onClick = { 
+                            val message = "আসসালামু আলাইকুম, ইসলামিক অ্যাসিস্ট্যান্ট অ্যাপ থেকে যোগাযোগ করছি। আমার একটি সাহায্য প্রয়োজন।"
+                            openUrl("https://wa.me/8801909902319?text=${android.net.Uri.encode(message)}") 
+                        }
+                    )
+                    SectionDivider()
+                    ProfileOptionItem(
+                        title = "Support Telegram",
+                        icon = Icons.Filled.Send,
+                        iconColor = Color(0xFF0088CC),
+                        onClick = { openUrl("https://t.me/calloftamim") }
+                    )
+                    SectionDivider()
+                    ProfileOptionItem(
+                        title = "Facebook Group",
+                        icon = Icons.Filled.Groups,
+                        iconColor = Color(0xFF1877F2),
+                        onClick = { openUrl("https://www.facebook.com/share/g/184FQ3v2Rq/") }
+                    )
+                    SectionDivider()
+                    ProfileOptionItem(
+                        title = "WhatsApp Channel",
+                        icon = Icons.Filled.Campaign,
+                        iconColor = Color(0xFF25D366),
+                        onClick = { openUrl("https://whatsapp.com/channel/0029Vb6cwrFCBtxJKy95Xh0S") }
+                    )
+                    SectionDivider()
+                    ProfileOptionItem(
+                        title = "Telegram Group",
+                        icon = Icons.Filled.Forum,
+                        iconColor = Color(0xFF0088CC),
+                        onClick = { openUrl("https://t.me/halalcirclesupport") }
+                    )
+                    SectionDivider()
+                    ProfileOptionItem(
+                        title = "Telegram Channel",
+                        icon = Icons.Filled.Campaign,
+                        iconColor = Color(0xFF0088CC),
+                        onClick = { openUrl("https://t.me/halalcircle") }
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Legal Card
                 Text(
                     text = if (GlobalLanguage.isEnglish) "Legal" else "লিগ্যাল",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
-                    color = TextDark,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+                    fontSize = 13.sp,
+                    color = TextGray,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp)
                 )
 
-                Column(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                        ProfileOptionRow(
-                            title = "Privacy Policy",
-                            icon = Icons.Filled.PrivacyTip,
-                            iconColor = Color(0xFF6366F1),
-                            onClick = { showPrivacyPolicy = true }
-                        )
-                        ProfileOptionRow(
-                            title = "Terms & Conditions",
-                            icon = Icons.Filled.Description,
-                            iconColor = Color(0xFF8B5CF6),
-                            onClick = { showTerms = true }
-                        )
-                        ProfileOptionRow(
-                            title = "Disclaimer",
-                            icon = Icons.Filled.Gavel,
-                            iconColor = Color(0xFFF59E0B),
-                            onClick = { showDisclaimer = true }
-                        )
-                        ProfileOptionRow(
-                            title = "About App",
-                            icon = Icons.Filled.Info,
-                            iconColor = Color(0xFF3B82F6),
-                            onClick = { showAbout = true }
-                        )
-                        ProfileOptionRow(
-                            title = "Contact Us",
-                            icon = Icons.Filled.ContactSupport,
-                            iconColor = Color(0xFF14B8A6),
-                            onClick = { showContactUs = true }
-                        )
+                ProfileSection {
+                    ProfileOptionItem(
+                        title = "Privacy Policy",
+                        icon = Icons.Filled.PrivacyTip,
+                        iconColor = Color(0xFF6366F1),
+                        onClick = { showPrivacyPolicy = true }
+                    )
+                    SectionDivider()
+                    ProfileOptionItem(
+                        title = "Terms & Conditions",
+                        icon = Icons.Filled.Description,
+                        iconColor = Color(0xFF8B5CF6),
+                        onClick = { showTerms = true }
+                    )
+                    SectionDivider()
+                    ProfileOptionItem(
+                        title = "Disclaimer",
+                        icon = Icons.Filled.Gavel,
+                        iconColor = Color(0xFFF59E0B),
+                        onClick = { showDisclaimer = true }
+                    )
+                    SectionDivider()
+                    ProfileOptionItem(
+                        title = "About App",
+                        icon = Icons.Filled.Info,
+                        iconColor = Color(0xFF3B82F6),
+                        onClick = { showAbout = true }
+                    )
+                    SectionDivider()
+                    ProfileOptionItem(
+                        title = "Contact Us",
+                        icon = Icons.Filled.ContactSupport,
+                        iconColor = Color(0xFF14B8A6),
+                        onClick = { showContactUs = true }
+                    )
                 }
 
                 // If logged in, show logout and delete account
                 if (currentUser != null) {
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                     
                     Text(
                         text = if (GlobalLanguage.isEnglish) "Account" else "অ্যাকাউন্ট",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
-                        color = TextDark,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+                        fontSize = 13.sp,
+                        color = TextGray,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp)
                     )
 
-                    Column(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                            ProfileOptionRow(
-                                title = if (GlobalLanguage.isEnglish) "Sign Out" else "লগআউট করুন",
-                                icon = Icons.Filled.Logout,
-                                iconColor = Color.Red,
-                                onClick = {
-                                    scope.launch {
-                                        auth.signOut()
-                                        currentUser = null
-                                        Toast.makeText(context, if (GlobalLanguage.isEnglish) "Logged out successfully" else "সফলভাবে লগআউট করা হয়েছে", Toast.LENGTH_SHORT).show()
-                                    }
+                    ProfileSection {
+                        ProfileOptionItem(
+                            title = if (GlobalLanguage.isEnglish) "Sign Out" else "লগআউট করুন",
+                            icon = Icons.Filled.Logout,
+                            iconColor = Color.Red,
+                            onClick = {
+                                scope.launch {
+                                    auth.signOut()
+                                    currentUser = null
+                                    Toast.makeText(context, if (GlobalLanguage.isEnglish) "Logged out successfully" else "সফলভাবে লগআউট করা হয়েছে", Toast.LENGTH_SHORT).show()
                                 }
-                            )
-
-                            ProfileOptionRow(
-                                title = if (GlobalLanguage.isEnglish) "Delete Account" else "অ্যাকাউন্ট মুছে ফেলুন",
-                                icon = Icons.Filled.Delete,
-                                iconColor = Color.Red,
-                                onClick = {
-                                    // Normally shows a confirmation dialog
-                                    Toast.makeText(context, if (GlobalLanguage.isEnglish) "Account deletion request sent" else "অ্যাকাউন্ট মুছে ফেলার অনুরোধ পাঠানো হয়েছে", Toast.LENGTH_LONG).show()
-                                }
-                            )
+                            }
+                        )
+                        SectionDivider()
+                        ProfileOptionItem(
+                            title = if (GlobalLanguage.isEnglish) "Delete Account" else "অ্যাকাউন্ট মুছে ফেলুন",
+                            icon = Icons.Filled.Delete,
+                            iconColor = Color.Red,
+                            onClick = {
+                                // Normally shows a confirmation dialog
+                                Toast.makeText(context, if (GlobalLanguage.isEnglish) "Account deletion request sent" else "অ্যাকাউন্ট মুছে ফেলার অনুরোধ পাঠানো হয়েছে", Toast.LENGTH_LONG).show()
+                            }
+                        )
                     }
                 }
 
@@ -1842,16 +1819,13 @@ fun TrackerHistoryCard(tracker: DailyTracker) {
 }
 
 @Composable
-fun ProfileOptionRow(
+fun ProfileOptionItem(
     title: String,
     icon: ImageVector,
     iconColor: Color,
     onClick: () -> Unit
 ) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = CardBg),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp),
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(
@@ -1859,36 +1833,29 @@ fun ProfileOptionRow(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = LocalIndication.current
             )
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                    .size(38.dp)
-                    .background(
-                        color = iconColor,
-                        shape = CircleShape
-                    ),
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .background(color = iconColor.copy(alpha = 0.12f), shape = RoundedCornerShape(10.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp)
+                    tint = iconColor,
+                    modifier = Modifier.size(19.dp)
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
             Text(
                 text = title,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
                 color = TextDark
             )
         }
@@ -1896,18 +1863,35 @@ fun ProfileOptionRow(
         Icon(
             imageVector = Icons.Default.ChevronRight,
             contentDescription = null,
-            tint = Color(0xFFC7C7CC),
-            modifier = Modifier.size(20.dp)
+            tint = TextGray.copy(alpha = 0.4f),
+            modifier = Modifier.size(18.dp)
         )
-    }
     }
 }
 
 @Composable
-fun ProfileDivider() {
+fun ProfileSection(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = CardBg),
+        shape = RoundedCornerShape(14.dp),
+        border = BorderStroke(0.5.dp, if (isDarkModeGlobal) Color(0xFF334155) else Color(0xFFE5E7EB)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
+        Column(content = content)
+    }
+}
+
+@Composable
+fun SectionDivider() {
     Divider(
-        color = Color(0xFFF3F4F6),
-        thickness = 1.dp,
+        color = if (isDarkModeGlobal) Color(0xFF334155) else Color(0xFFF3F4F6),
+        thickness = 0.8.dp,
         modifier = Modifier.padding(horizontal = 16.dp)
     )
 }
