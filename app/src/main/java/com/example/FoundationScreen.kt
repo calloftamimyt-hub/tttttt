@@ -362,7 +362,7 @@ fun FoundationScreen(onBack: () -> Unit) {
                     } else {
                         "মুসলিম কম্পানিয়ন ফাউন্ডেশনের সেবা কার্যক্রমকে দেশের গন্ডি পেরিয়ে বৈশ্বিক স্তরে ছড়িয়ে দেওয়া।"
                     },
-                    imageRes = R.drawable.ic_launcher_foreground
+                    imageRes = R.drawable.ic_app_logo_asset
                 )
 
                 DreamCard(
@@ -372,7 +372,7 @@ fun FoundationScreen(onBack: () -> Unit) {
                     } else {
                         "আফ্রিকার অত্যন্ত অনগ্রসর ও গরীব অঞ্চলে সুপেয় বিশুদ্ধ পানির কূয়া স্থাপন, খাদ্য সামগ্রী এবং শিশু শিক্ষা সহায়তা বিতরণ।"
                     },
-                    imageRes = R.drawable.ic_launcher_foreground
+                    imageRes = R.drawable.ic_app_logo_asset
                 )
             }
 

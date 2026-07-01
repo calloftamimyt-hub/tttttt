@@ -2125,7 +2125,7 @@ fun SplashScreen(onFinished: () -> Unit) {
             modifier = Modifier.offset(y = (-30).dp)
         ) {
             Image(
-                painter = androidx.compose.ui.res.painterResource(id = R.drawable.ic_launcher_foreground),
+                painter = androidx.compose.ui.res.painterResource(id = R.drawable.ic_app_logo_asset),
                 contentDescription = "App Logo",
                 modifier = Modifier
                     .size(100.dp)
