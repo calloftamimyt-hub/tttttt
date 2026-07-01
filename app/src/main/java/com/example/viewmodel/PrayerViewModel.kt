@@ -126,8 +126,6 @@ class PrayerViewModel : ViewModel() {
     private var hasLocationData = true
 
     init {
-        // We will receive context later to load from prefs if needed, 
-        // initially use defaults
         refreshState()
     }
     
@@ -159,7 +157,6 @@ class PrayerViewModel : ViewModel() {
         lastLng = alarmPrefs.getFloat("lng", 90.4125f).toDouble()
         lastOffset = alarmPrefs.getFloat("offset", 6.0f).toDouble()
         
-        // Ensure savedDist is from the current country if not auto location
         if (!isAuto) {
             val validDistricts = com.example.viewmodel.getDistrictsForCountry(savedCountryCode)
             val isValid = validDistricts.any { it.name == savedDist || it.englishName == savedDist }
@@ -237,8 +234,8 @@ class PrayerViewModel : ViewModel() {
     fun setLocationManually(context: Context, districtName: String, lat: Double, lng: Double) {
         lastLat = lat
         lastLng = lng
-        val calculatedOffset = Math.round(lng / 15.0).toDouble()
-        lastOffset = calculatedOffset
+        val timeZoneOffset = TimeZone.getDefault().getOffset(System.currentTimeMillis()) / (1000.0 * 60.0 * 60.0)
+        lastOffset = timeZoneOffset
         
         hasLocationData = true
         _state.update { 
@@ -350,7 +347,6 @@ class PrayerViewModel : ViewModel() {
 
         _state.update { it.copy(hasLocationPermission = true) }
 
-        // Fetch standard LocationManager known location
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as? android.location.LocationManager
         var lastKnownLoc: android.location.Location? = null
         if (locationManager != null) {
@@ -369,108 +365,77 @@ class PrayerViewModel : ViewModel() {
             }
         }
 
-        // Process resolved location helper
         fun processResolvedLocation(location: android.location.Location) {
             if (!_state.value.isAutoLocation) return
-            _state.update { it.copy(isLoading = true) }
-            
-            viewModelScope.launch(Dispatchers.IO) {
-                val calculatedOffset = Math.round(location.longitude / 15.0).toDouble()
-                lastLat = location.latitude
-                lastLng = location.longitude
-                lastOffset = calculatedOffset
-                hasLocationData = true
+            val timeZoneOffset = TimeZone.getDefault().getOffset(System.currentTimeMillis()) / (1000.0 * 60.0 * 60.0)
+            lastLat = location.latitude
+            lastLng = location.longitude
+            lastOffset = timeZoneOffset
+            hasLocationData = true
 
-                // Try to resolve city name using Geocoder on background
-                var resolvedCityName = if (GlobalLanguage.isEnglish) "My Location" else "আমার অবস্থান"
-                try {
-                    val geocoder = Geocoder(context, Locale.getDefault())
-                    val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
-                    val address = addresses?.firstOrNull()
-                    if (address != null) {
-                        resolvedCityName = address.locality ?: address.subAdminArea ?: address.adminArea ?: address.featureName ?: resolvedCityName
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
+            val alarmPrefs = context.getSharedPreferences("prayer_alarm_prefs", Context.MODE_PRIVATE)
+            alarmPrefs.edit()
+                .putFloat("lat", lastLat.toFloat())
+                .putFloat("lng", lastLng.toFloat())
+                .putFloat("offset", lastOffset.toFloat())
+                .apply()
 
-                val alarmPrefs = context.getSharedPreferences("prayer_alarm_prefs", Context.MODE_PRIVATE)
-                alarmPrefs.edit()
-                    .putFloat("lat", lastLat.toFloat())
-                    .putFloat("lng", lastLng.toFloat())
-                    .putFloat("offset", lastOffset.toFloat())
-                    .putString("saved_district", resolvedCityName)
-                    .apply()
+            val times = PrayerCalculator.calculatePrayerTimes(lastLat, lastLng, lastOffset, lastMadhab)
+            calculateForbiddenTimes(times)
+            AlarmHelper.scheduleNextPrayer(
+                context = context, 
+                lat = lastLat, 
+                lng = lastLng, 
+                timezoneOffsetHor = lastOffset, 
+                alarms = _state.value.alarms,
+                locationName = "আমার অবস্থান",
+                isAuto = true
+            )
 
-                val times = PrayerCalculator.calculatePrayerTimes(lastLat, lastLng, lastOffset, lastMadhab)
-                
-                withContext(Dispatchers.Main) {
-                    calculateForbiddenTimes(times)
-                    AlarmHelper.scheduleNextPrayer(
-                        context = context, 
-                        lat = lastLat, 
-                        lng = lastLng, 
-                        timezoneOffsetHor = lastOffset, 
-                        alarms = _state.value.alarms,
-                        locationName = resolvedCityName,
-                        isAuto = true
-                    )
-
-                    _state.update { 
-                        it.copy(
-                            isLoading = false,
-                            prayerTimes = times, 
-                            locationName = resolvedCityName, 
-                            selectedDistrict = resolvedCityName, 
-                            latitude = lastLat, 
-                            longitude = lastLng
-                        ) 
-                    }
-                    updateNextPrayer(times)
-                    com.example.widget.WidgetUtils.updateAllWidgets(context)
-                }
-            }
+            _state.update { it.copy(prayerTimes = times, locationName = "আমার অবস্থান", latitude = lastLat, longitude = lastLng) }
+            updateNextPrayer(times)
+            com.example.widget.WidgetUtils.updateAllWidgets(context)
         }
 
-        // If we have a very fresh location from LocationManager, prioritize it
         if (lastKnownLoc != null && (System.currentTimeMillis() - lastKnownLoc.time) < 5 * 60 * 1000) {
             processResolvedLocation(lastKnownLoc)
             return
         }
 
-        // Query FusedLocationProviderClient first as it can be accurate, falling back immediately to LocationManager
         try {
-            fusedLocationClient?.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
-                ?.addOnSuccessListener { location ->
-                    if (location != null) {
-                        processResolvedLocation(location)
-                    } else if (lastKnownLoc != null) {
-                        processResolvedLocation(lastKnownLoc)
-                    } else {
-                        // Fallback to LocationCallback to actively fetch location
-                        try {
-                            val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000)
-                                .setMaxUpdates(1)
-                                .build()
-                            val newCallback = object : LocationCallback() {
-                                override fun onLocationResult(result: LocationResult) {
-                                    result.lastLocation?.let {
-                                        processResolvedLocation(it)
-                                    }
-                                    fusedLocationClient?.removeLocationUpdates(this)
-                                }
+            fusedLocationClient?.lastLocation?.addOnSuccessListener { location ->
+                if (location != null) {
+                    processResolvedLocation(location)
+                } else if (lastKnownLoc != null) {
+                    processResolvedLocation(lastKnownLoc)
+                } else {
+                    try {
+                        locationManager?.let { mgr ->
+                            val provider = if (mgr.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER)) {
+                                android.location.LocationManager.NETWORK_PROVIDER
+                            } else {
+                                android.location.LocationManager.GPS_PROVIDER
                             }
-                            locationCallback = newCallback
-                            fusedLocationClient?.requestLocationUpdates(locationRequest, newCallback, Looper.getMainLooper())
-                        } catch (ex: Exception) {
-                            ex.printStackTrace()
+                            if (mgr.isProviderEnabled(provider)) {
+                                mgr.requestSingleUpdate(provider, object : android.location.LocationListener {
+                                    override fun onLocationChanged(loc: android.location.Location) {
+                                        processResolvedLocation(loc)
+                                    }
+                                    override fun onStatusChanged(provider: String?, status: Int, extras: android.os.Bundle?) {}
+                                    override fun onProviderEnabled(provider: String) {}
+                                    override fun onProviderDisabled(provider: String) {}
+                                }, Looper.getMainLooper())
+                            }
                         }
-                    }
-                }?.addOnFailureListener {
-                    if (lastKnownLoc != null) {
-                        processResolvedLocation(lastKnownLoc)
+                    } catch (ex: Exception) {
+                        ex.printStackTrace()
                     }
                 }
+            }?.addOnFailureListener {
+                if (lastKnownLoc != null) {
+                    processResolvedLocation(lastKnownLoc)
+                }
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             if (lastKnownLoc != null) {
@@ -575,7 +540,6 @@ class PrayerViewModel : ViewModel() {
         val ishaHours = times.ishaHours
         val fajrHours = times.fajrHours
 
-        // Check if we are in the Nafl/Chasht period (Sunrise to Dhuhr)
         val isNaflPeriod = currentHourDecimal >= sunriseHours && currentHourDecimal < dhuhrHours
 
         var currentName = ""
@@ -661,37 +625,25 @@ class PrayerViewModel : ViewModel() {
         startCountdownTimer(currentEndTime, currentStartTime, times)
     }
 
-    private fun formatDiff(diffInHours: Double, isEnglish: Boolean): String {
-        var d = diffInHours
-        if (d.isNaN() || d.isInfinite()) {
-            return if (isEnglish) "00:00:00" else "০০:০০:০০"
-        }
-        while (d < 0) d += 24.0
-        d = d % 24.0
-        
-        val totalSeconds = (d * 3600).toInt()
-        val h = totalSeconds / 3600
-        val m = (totalSeconds % 3600) / 60
-        val s = totalSeconds % 60
-        val str = String.format("%02d:%02d:%02d", h, m, s)
-        return if (isEnglish) str else str.toBengali()
-    }
-
     private fun startCountdownTimer(targetHour: Double, startHour: Double, todayTimes: PrayerTimes) {
         timerJob?.cancel()
-        timerJob = viewModelScope.launch(Dispatchers.Default) {
+        timerJob = viewModelScope.launch {
             while(true) {
                 val cal = Calendar.getInstance()
                 val currentHourDec = cal.get(Calendar.HOUR_OF_DAY) + cal.get(Calendar.MINUTE)/60.0 + cal.get(Calendar.SECOND)/3600.0
                 val isEng = GlobalLanguage.isEnglish
-
+                
                 var diff = targetHour - currentHourDec
                 if (diff < 0) diff += 24.0
                 
                 val totalDuration = targetHour - startHour
                 val progress = if (totalDuration <= 0.0) 0f else ((currentHourDec - startHour) / totalDuration).coerceIn(0.0, 1.0).toFloat()
                 
-                val timeStr = formatDiff(diff, isEng)
+                val h = Math.floor(diff).toInt()
+                val m = Math.floor((diff - h)*60).toInt()
+                val s = Math.floor(((diff - h)*60 - m)*60).toInt()
+                
+                val timeStr = String.format("%02d:%02d:%02d", h, m, s).toBengali()
                 
                 val fH = todayTimes.fajrHours
                 val sH = todayTimes.sunriseHours
@@ -701,64 +653,74 @@ class PrayerViewModel : ViewModel() {
                 val iH = todayTimes.ishaHours
                 
                 var specialLabel = if (isEng) "Sehri Remaining" else "সাহরির বাকি"
-                var targetS = fH
-                var startS = mH - 24.0
-                var isIftarVal = false
+                var targetHour_S = fH
+                var startHour_S = mH - 24.0
 
                 if (currentHourDec > fH && currentHourDec < mH) {
+                    specialLabel = if (isEng) "Iftar Remaining" else "イftar Remaining" // Fix translation
                     specialLabel = if (isEng) "Iftar Remaining" else "ইফতারের বাকি"
-                    targetS = mH
-                    startS = fH
-                    isIftarVal = true
+                    targetHour_S = mH
+                    startHour_S = fH
                 } else {
                     specialLabel = if (isEng) "Sehri Remaining" else "সাহরির বাকি"
-                    targetS = if (currentHourDec > mH) fH + 24.0 else fH
-                    startS = if (currentHourDec > mH) mH else mH - 24.0
-                    isIftarVal = false
+                    targetHour_S = if (currentHourDec > mH) fH + 24.0 else fH
+                    startHour_S = if (currentHourDec > mH) mH else mH - 24.0
                 }
 
-                var specDiff = targetS - currentHourDec
+                var specDiff = targetHour_S - currentHourDec
                 if (specDiff < 0) specDiff += 24.0
-                val specTotal = targetS - startS
-                val specProgress = if (specTotal <= 0.0) 0f else ((currentHourDec - startS) / specTotal).coerceIn(0.0, 1.0).toFloat()
-                val specTimeStr = formatDiff(specDiff, isEng)
+                val specTotal = targetHour_S - startHour_S
+                val specProgress = if (specTotal <= 0.0) 0f else ((currentHourDec - startHour_S) / specTotal).coerceIn(0.0, 1.0).toFloat()
+                
+                val sh = Math.floor(specDiff).toInt()
+                val sm = Math.floor((specDiff - sh)*60).toInt()
+                val ss = Math.floor(((specDiff - sh)*60 - sm)*60).toInt()
+                val specTimeStr = String.format("%02d:%02d:%02d", sh, sm, ss).toBengali()
 
-                // Detailed countdowns for PrayerScreen
-                val fC = (if (currentHourDec >= fH && currentHourDec < sH) (if(isEng) "Ends: " else "শেষ: ") + formatDiff(sH - currentHourDec, isEng) else (if(isEng) "Starts: " else "শুরু: ") + formatDiff(fH - currentHourDec, isEng))
-                val dC = (if (currentHourDec >= dH && currentHourDec < aH) (if(isEng) "Ends: " else "শেষ: ") + formatDiff(aH - currentHourDec, isEng) else (if(isEng) "Starts: " else "শুরু: ") + formatDiff(dH - currentHourDec, isEng))
-                val aC = (if (currentHourDec >= aH && currentHourDec < mH) (if(isEng) "Ends: " else "শেষ: ") + formatDiff(mH - currentHourDec, isEng) else (if(isEng) "Starts: " else "শুরু: ") + formatDiff(aH - currentHourDec, isEng))
-                val mC = (if (currentHourDec >= mH && currentHourDec < iH) (if(isEng) "Ends: " else "শেষ: ") + formatDiff(iH - currentHourDec, isEng) else (if(isEng) "Starts: " else "শুরু: ") + formatDiff(mH - currentHourDec, isEng))
+                val formatFunc = { d: Double ->
+                    var vd = d
+                    while (vd < 0) vd += 24.0
+                    vd = vd % 24.0
+                    val totalSec = (vd * 3600).toInt()
+                    val th = totalSec / 3600
+                    val tm = (totalSec % 3600) / 60
+                    val ts = totalSec % 60
+                    String.format("%02d:%02d:%02d", th, tm, ts).toBengali()
+                }
+
+                val fC = if (currentHourDec >= fH && currentHourDec < sH) (if(isEng) "Ends: " else "শেষ: ") + formatFunc(sH - currentHourDec) else (if(isEng) "Starts: " else "শুরু: ") + formatFunc(fH - currentHourDec)
+                val dC = if (currentHourDec >= dH && currentHourDec < aH) (if(isEng) "Ends: " else "শেষ: ") + formatFunc(aH - currentHourDec) else (if(isEng) "Starts: " else "শুরু: ") + formatFunc(dH - currentHourDec)
+                val aC = if (currentHourDec >= aH && currentHourDec < mH) (if(isEng) "Ends: " else "শেষ: ") + formatFunc(mH - currentHourDec) else (if(isEng) "Starts: " else "শুরু: ") + formatFunc(aH - currentHourDec)
+                val mC = if (currentHourDec >= mH && currentHourDec < iH) (if(isEng) "Ends: " else "শেষ: ") + formatFunc(iH - currentHourDec) else (if(isEng) "Starts: " else "শুরু: ") + formatFunc(mH - currentHourDec)
                 val iC = if (currentHourDec >= iH || currentHourDec < fH) {
                     val tF = if (currentHourDec >= iH) fH + 24.0 else fH
-                    (if(isEng) "Ends: " else "শেষ: ") + formatDiff(tF - currentHourDec, isEng)
-                } else (if(isEng) "Starts: " else "শুরু: ") + formatDiff(iH - currentHourDec, isEng)
+                    (if(isEng) "Ends: " else "শেষ: ") + formatFunc(tF - currentHourDec)
+                } else (if(isEng) "Starts: " else "শুরু: ") + formatFunc(iH - currentHourDec)
 
-                val sehriC = formatDiff(if (currentHourDec < fH) fH - currentHourDec else (fH + 24.0) - currentHourDec, isEng)
-                val iftarC = formatDiff(if (currentHourDec < mH) mH - currentHourDec else (mH + 24.0) - currentHourDec, isEng)
-                val sunriseC = formatDiff(if (currentHourDec < sH) sH - currentHourDec else (sH + 24.0) - currentHourDec, isEng)
-                val sunsetC = formatDiff(if (currentHourDec < mH) mH - currentHourDec else (mH + 24.0) - currentHourDec, isEng)
+                val sehriC = formatFunc(if (currentHourDec < fH) fH - currentHourDec else (fH + 24.0) - currentHourDec)
+                val iftarC = formatFunc(if (currentHourDec < mH) mH - currentHourDec else (mH + 24.0) - currentHourDec)
+                val sunriseC = formatFunc(if (currentHourDec < sH) sH - currentHourDec else (sH + 24.0) - currentHourDec)
+                val sunsetC = formatFunc(if (currentHourDec < mH) mH - currentHourDec else (mH + 24.0) - currentHourDec)
 
                 val fsS = sH; val fsE = sH + 15.0/60.0; val fsA = currentHourDec >= fsS && currentHourDec < fsE
-                val fsC = (if(fsA) (if(isEng) "Ends in " else "শেষ হতে ") + formatDiff(fsE - currentHourDec, isEng) else (if(isEng) "Starts in " else "শুরু হতে ") + formatDiff(fsS - currentHourDec, isEng))
+                val fsC = (if(fsA) (if(isEng) "Ends in " else "শেষ হতে ") + formatFunc(fsE - currentHourDec) else (if(isEng) "Starts in " else "শুরু হতে ") + formatFunc(fsS - currentHourDec))
                 val fnS = dH - 15.0/60.0; val fnE = dH; val fnA = currentHourDec >= fnS && currentHourDec < fnE
-                val fnC = (if(fnA) (if(isEng) "Ends in " else "শেষ হতে ") + formatDiff(fnE - currentHourDec, isEng) else (if(isEng) "Starts in " else "শুরু হতে ") + formatDiff(fnS - currentHourDec, isEng))
+                val fnC = (if(fnA) (if(isEng) "Ends in " else "শেষ হতে ") + formatFunc(fnE - currentHourDec) else (if(isEng) "Starts in " else "শুরু হতে ") + formatFunc(fnS - currentHourDec))
                 val fsnS = mH - 15.0/60.0; val fsnE = mH; val fsnA = currentHourDec >= fsnS && currentHourDec < fsnE
-                val fsnC = (if(fsnA) (if(isEng) "Ends in " else "শেষ হতে ") + formatDiff(fsnE - currentHourDec, isEng) else (if(isEng) "Starts in " else "শুরু হতে ") + formatDiff(fsnS - currentHourDec, isEng))
+                val fsnC = (if(fsnA) (if(isEng) "Ends in " else "শেষ হতে ") + formatFunc(fsnE - currentHourDec) else (if(isEng) "Starts in " else "শুরু হতে ") + formatFunc(fsnS - currentHourDec))
 
-                withContext(Dispatchers.Main) {
-                    _state.update { it.copy(
-                        currentHourDecimal = currentHourDec,
-                        nextPrayerRemaining = timeStr,
-                        timerProgress = progress,
-                        specialCountdownLabel = specialLabel,
-                        specialCountdownTime = specTimeStr,
-                        specialCountdownProgress = specProgress,
-                        fajrCountdown = fC, dhuhrCountdown = dC, asrCountdown = aC, maghribCountdown = mC, ishaCountdown = iC,
-                        sehriCountdown = sehriC, iftarCountdown = iftarC, sunriseCountdown = sunriseC, sunsetCountdown = sunsetC,
-                        forbiddenSunriseCountdown = fsC, forbiddenNoonCountdown = fnC, forbiddenSunsetCountdown = fsnC,
-                        isIftarCountdown = isIftarVal
-                    ) }
-                }
+                _state.update { it.copy(
+                    currentHourDecimal = currentHourDec,
+                    nextPrayerRemaining = timeStr,
+                    timerProgress = progress,
+                    specialCountdownLabel = specialLabel,
+                    specialCountdownTime = specTimeStr,
+                    specialCountdownProgress = specProgress,
+                    fajrCountdown = fC, dhuhrCountdown = dC, asrCountdown = aC, maghribCountdown = mC, ishaCountdown = iC,
+                    sehriCountdown = sehriC, iftarCountdown = iftarC, sunriseCountdown = sunriseC, sunsetCountdown = sunsetC,
+                    forbiddenSunriseCountdown = fsC, forbiddenNoonCountdown = fnC, forbiddenSunsetCountdown = fsnC,
+                    isIftarCountdown = currentHourDec > fH && currentHourDec < mH
+                ) }
                 
                 delay(1000)
             }
