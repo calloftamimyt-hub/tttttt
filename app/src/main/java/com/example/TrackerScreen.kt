@@ -16,6 +16,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -32,6 +34,7 @@ import java.util.*
 @Composable
 fun TrackerScreen(onBack: () -> Unit = {}) {
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
     val isEnglish = GlobalLanguage.isEnglish
     
     var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
@@ -196,7 +199,10 @@ fun TrackerScreen(onBack: () -> Unit = {}) {
                     
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(
-                            onClick = { if (tasbihCount > 0) tasbihCount-- },
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                if (tasbihCount > 0) tasbihCount--
+                            },
                             modifier = Modifier
                                 .clip(CircleShape)
                                 .background(Color(0xFFF3F4F6))
@@ -207,7 +213,10 @@ fun TrackerScreen(onBack: () -> Unit = {}) {
                         Spacer(modifier = Modifier.width(12.dp))
                         
                         Button(
-                            onClick = { tasbihCount++ },
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                tasbihCount++
+                            },
                             shape = CircleShape,
                             contentPadding = PaddingValues(0.dp),
                             modifier = Modifier.size(56.dp),
@@ -222,6 +231,7 @@ fun TrackerScreen(onBack: () -> Unit = {}) {
             // Save Button
             Button(
                 onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     trackerPrefs.edit()
                         .putBoolean("${dateKey}_Fajr", fajr)
                         .putBoolean("${dateKey}_Dhuhr", dhuhr)
@@ -282,11 +292,15 @@ fun TrackerSection(title: String, content: @Composable () -> Unit) {
 
 @Composable
 fun PrayerItem(name: String, isChecked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    val haptic = LocalHapticFeedback.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .clickable { onCheckedChange(!isChecked) }
+            .clickable {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onCheckedChange(!isChecked)
+            }
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -313,7 +327,10 @@ fun PrayerItem(name: String, isChecked: Boolean, onCheckedChange: (Boolean) -> U
         )
         Checkbox(
             checked = isChecked,
-            onCheckedChange = onCheckedChange,
+            onCheckedChange = {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onCheckedChange(it)
+            },
             colors = CheckboxDefaults.colors(checkedColor = PrimaryGreen)
         )
     }
@@ -321,11 +338,15 @@ fun PrayerItem(name: String, isChecked: Boolean, onCheckedChange: (Boolean) -> U
 
 @Composable
 fun ActivityToggleItem(name: String, icon: androidx.compose.ui.graphics.vector.ImageVector, isChecked: Boolean, onToggle: (Boolean) -> Unit) {
+    val haptic = LocalHapticFeedback.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .clickable { onToggle(!isChecked) }
+            .clickable {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onToggle(!isChecked)
+            }
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -351,7 +372,10 @@ fun ActivityToggleItem(name: String, icon: androidx.compose.ui.graphics.vector.I
         )
         Switch(
             checked = isChecked,
-            onCheckedChange = onToggle,
+            onCheckedChange = {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onToggle(it)
+            },
             colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = PrimaryGreen)
         )
     }

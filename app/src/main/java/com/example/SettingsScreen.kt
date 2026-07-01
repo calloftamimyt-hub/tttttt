@@ -40,6 +40,8 @@ import android.net.Uri
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.ui.platform.LocalContext
 import android.content.Intent
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,6 +54,7 @@ fun SettingsScreen(
     onToggleAutoLocation: (Boolean) -> Unit = {}
 ) {
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
     val isEng = GlobalLanguage.isEnglish
     val scrollState = rememberScrollState()
 
@@ -179,6 +182,7 @@ fun SettingsScreen(
                                         RoundedCornerShape(6.dp)
                                     )
                                     .clickable {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         viewModel?.setSelectedCountryAndLanguage(selectedCountryCode, AppLanguages.BENGALI)
                                     }
                                     .padding(horizontal = 12.dp, vertical = 6.dp)
@@ -198,6 +202,7 @@ fun SettingsScreen(
                                         RoundedCornerShape(6.dp)
                                     )
                                     .clickable {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         viewModel?.setSelectedCountryAndLanguage(selectedCountryCode, AppLanguages.ENGLISH)
                                     }
                                     .padding(horizontal = 12.dp, vertical = 6.dp)
@@ -269,6 +274,7 @@ fun SettingsScreen(
                         Switch(
                             checked = isDarkMode,
                             onCheckedChange = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 isDarkMode = it
                                 themePrefs.edit().putBoolean("dark_mode", it).apply()
                             },

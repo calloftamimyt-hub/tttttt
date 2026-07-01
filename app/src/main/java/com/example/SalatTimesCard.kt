@@ -18,6 +18,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,6 +35,7 @@ import com.example.ui.theme.*
 fun SalatTimesCard(state: ViewState) {
     state.prayerTimes?.let { times ->
         val context = LocalContext.current
+        val haptic = LocalHapticFeedback.current
         val isEng = GlobalLanguage.isEnglish
         val primaryGreen = Color(0xFF10B982)
         val lightGreen = if (isDarkModeGlobal) Color(0xFF064E3B) else Color(0xFFECFDF5)
@@ -210,6 +213,7 @@ fun SalatTimesCard(state: ViewState) {
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(8.dp))
                                     .clickable {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         val newValue = !isChecked
                                         checkedState[prayer.internalName] = newValue
                                         trackerPrefs.edit().putBoolean("${dateStr}_${prayer.internalName}", newValue).apply()

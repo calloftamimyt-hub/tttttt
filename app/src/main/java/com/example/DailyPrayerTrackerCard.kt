@@ -20,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,6 +38,7 @@ fun DailyPrayerTrackerCard(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
     val isEng = GlobalLanguage.isEnglish
     val primaryGreen = Color(0xFF10B982)
 
@@ -197,6 +200,7 @@ fun DailyPrayerTrackerCard(
                             .weight(1f)
                             .clip(RoundedCornerShape(8.dp))
                             .clickable {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 val newValue = !isChecked
                                 checkedState[internalName] = newValue
                                 trackerPrefs.edit().putBoolean("${dateStr}_$internalName", newValue).apply()
