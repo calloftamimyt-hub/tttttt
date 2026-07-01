@@ -899,7 +899,11 @@ fun AppBottomNavigation(selectedTab: String, isDark: Boolean, onTabSelected: (St
 }
 
 @Composable
-fun UnifiedHeroCard(state: com.example.viewmodel.ViewState, onNavigateToPrayerDetails: () -> Unit) {
+fun UnifiedHeroCard(
+    state: com.example.viewmodel.ViewState, 
+    onNavigateToPrayerDetails: () -> Unit,
+    onNavigateToLocation: () -> Unit
+) {
     val prayerTimes = state.prayerTimes ?: return
     val currentHour = state.currentHourDecimal
     val sunrise = prayerTimes.sunriseHours
@@ -983,38 +987,78 @@ fun UnifiedHeroCard(state: com.example.viewmodel.ViewState, onNavigateToPrayerDe
                 }
             }
             
-            // Labels for Sunrise and Sunset at bottom
+            // Location Badge, Sunrise, and Sunset horizontally at the bottom
             Row(
-                modifier = Modifier.fillMaxSize().padding(bottom = 45.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Bottom
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Outlined.WbTwilight, contentDescription = "Sunrise", tint = Color(0xFFF59E0B), modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        if (GlobalLanguage.isEnglish) "Sunrise" else "সূর্যোদয়",
-                        color = TextDark,
-                        fontSize = 10.sp
+                // Left: Location Selector Pill
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier
+                        .background(PrimaryGreen.copy(alpha = 0.08f), RoundedCornerShape(12.dp))
+                        .border(1.dp, PrimaryGreen.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                        .clickable { onNavigateToLocation() }
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.LocationOn,
+                        contentDescription = "Location",
+                        tint = PrimaryGreen,
+                        modifier = Modifier.size(12.dp)
                     )
                     Text(
-                        prayerTimes.sunrise.toBengali(),
+                        text = state.locationName,
+                        fontWeight = FontWeight.SemiBold,
                         color = PrimaryGreen,
+                        fontSize = 11.sp
+                    )
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Expand Location",
+                        tint = PrimaryGreen,
+                        modifier = Modifier.size(12.dp)
+                    )
+                }
+
+                // Middle: Sunrise with Icon
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.WbTwilight, 
+                        contentDescription = "Sunrise", 
+                        tint = Color(0xFFF59E0B), 
+                        modifier = Modifier.size(15.dp)
+                    )
+                    Text(
+                        text = if (GlobalLanguage.isEnglish) "Sunrise: ${prayerTimes.sunrise}" else "সূর্যোদয়: ${prayerTimes.sunrise.toBengali()}",
+                        color = TextDark,
                         fontWeight = FontWeight.Bold,
                         fontSize = 11.sp
                     )
                 }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Outlined.WbSunny, contentDescription = "Sunset", tint = Color(0xFFEA580C), modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        if (GlobalLanguage.isEnglish) "Sunset" else "সূর্যাস্ত",
-                        color = TextDark,
-                        fontSize = 10.sp
+
+                // Right: Sunset with Icon
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.WbSunny, 
+                        contentDescription = "Sunset", 
+                        tint = Color(0xFFEA580C), 
+                        modifier = Modifier.size(15.dp)
                     )
                     Text(
-                        prayerTimes.maghrib.toBengali(),
-                        color = PrimaryGreen,
+                        text = if (GlobalLanguage.isEnglish) "Sunset: ${prayerTimes.maghrib}" else "সূর্যাস্ত: ${prayerTimes.maghrib.toBengali()}",
+                        color = TextDark,
                         fontWeight = FontWeight.Bold,
                         fontSize = 11.sp
                     )
@@ -1095,42 +1139,6 @@ fun HomeScreen(
                         fontSize = 20.sp,
                         color = PrimaryGreen
                     )
-                }
-                
-                // Location Badge: styled beautifully with a light green background/border
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 4.dp)
-                ) {
-                    // Badge Container
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        modifier = Modifier
-                            .background(PrimaryGreen.copy(alpha = 0.08f), RoundedCornerShape(12.dp))
-                            .border(1.dp, PrimaryGreen.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
-                            .clickable { onNavigateToLocation() }
-                            .padding(horizontal = 10.dp, vertical = 5.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.LocationOn,
-                            contentDescription = "Location",
-                            tint = PrimaryGreen,
-                            modifier = Modifier.size(13.dp)
-                        )
-                        Text(
-                            text = state.locationName,
-                            fontWeight = FontWeight.SemiBold,
-                            color = PrimaryGreen,
-                            fontSize = 11.5.sp
-                        )
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = "Expand Location",
-                            tint = PrimaryGreen,
-                            modifier = Modifier.size(13.dp)
-                        )
-                    }
                 }
             }
             
@@ -1231,9 +1239,9 @@ fun HomeScreen(
     }
 
     // Unified Hero Section (Sun/Moon Arc + Countdown)
-    UnifiedHeroCard(state, onNavigateToPrayerDetails)
+    UnifiedHeroCard(state, onNavigateToPrayerDetails, onNavigateToLocation)
 
-    // Sub info (Sehri / Iftar Countdown) - Slim Feed Card
+    // Sub info (Sehri / Iftar & Live Countdown) - Slim Feed Card
     Surface(
         modifier = Modifier.fillMaxWidth().padding(vertical = 1.dp),
         color = Color.White,
@@ -1242,35 +1250,98 @@ fun HomeScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 8.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            val progressPercentInt = (state.specialCountdownProgress * 100).toInt()
-            val progressText = if (GlobalLanguage.isEnglish) "$progressPercentInt%" else "$progressPercentInt%".toBengali()
-            SubInfoItemProgress(
-                title = state.specialCountdownLabel, 
-                time = state.specialCountdownTime, 
-                progressFloat = state.specialCountdownProgress,
-                progressText = progressText,
-                isLarge = true
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            val subInfoTitle = if (state.isIftarCountdown) {
-                if (GlobalLanguage.isEnglish) "Iftar Time" else "ইফতারের সময়"
-            } else {
-                if (GlobalLanguage.isEnglish) "Sehri Last Time" else "সাহরির শেষ সময়"
+            val isEng = GlobalLanguage.isEnglish
+            
+            // Column 1: Sehri Ends Time
+            val sehriLastTime = state.prayerTimes?.fajr ?: "--:--"
+            val sehriLastTimeDisp = if (isEng) sehriLastTime else sehriLastTime.toBengali()
+            val sehriLabel = if (isEng) "Sehri Ends" else "পরবর্তী সাহরি"
+            
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = sehriLastTimeDisp,
+                    color = Color.Black,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = sehriLabel,
+                    color = TextGray,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
+                )
             }
-            val subInfoTime = if (state.isIftarCountdown) {
-                val t = state.prayerTimes?.maghrib ?: "--:--"
-                if (GlobalLanguage.isEnglish) t else t.toBengali()
-            } else {
-                val t = state.prayerTimes?.fajr ?: "--:--"
-                if (GlobalLanguage.isEnglish) t else t.toBengali()
-            }
-            SubInfoItem(
-                title = subInfoTitle, 
-                time = subInfoTime
+            
+            // Divider
+            Box(
+                modifier = Modifier
+                    .width(1.dp)
+                    .height(35.dp)
+                    .background(Color(0xFFE2E8F0))
             )
+            
+            // Column 2: Iftar Starts Time
+            val iftarTime = state.prayerTimes?.maghrib ?: "--:--"
+            val iftarTimeDisp = if (isEng) iftarTime else iftarTime.toBengali()
+            val iftarLabel = if (isEng) "Iftar Starts" else "পরবর্তী ইফতার"
+            
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = iftarTimeDisp,
+                    color = Color.Black,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = iftarLabel,
+                    color = TextGray,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            
+            // Divider
+            Box(
+                modifier = Modifier
+                    .width(1.dp)
+                    .height(35.dp)
+                    .background(Color(0xFFE2E8F0))
+            )
+            
+            // Column 3: Live Countdown
+            val countdownTime = state.specialCountdownTime
+            val countdownLabel = state.specialCountdownLabel
+            
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = countdownTime,
+                    color = PrimaryGreen,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = countdownLabel,
+                    color = TextGray,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
         }
     }
 
