@@ -443,7 +443,7 @@ fun QuranScreen(onBack: () -> Unit) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFFF8FAFC))
+                    .background(BgLight)
             ) {
                 Box(
                     modifier = Modifier
@@ -505,8 +505,8 @@ fun QuranScreen(onBack: () -> Unit) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 10.dp, vertical = 6.dp)
-                        .background(Color.White, RoundedCornerShape(10.dp))
-                        .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(10.dp))
+                        .background(CardBg, RoundedCornerShape(10.dp))
+                        .border(1.dp, if (isDarkModeGlobal) Color(0xFF334155) else Color(0xFFE2E8F0), RoundedCornerShape(10.dp))
                         .padding(horizontal = 12.dp, vertical = 8.dp)
                 ) {
                     Row(
@@ -561,7 +561,7 @@ fun QuranScreen(onBack: () -> Unit) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 10.dp, vertical = 4.dp)
-                        .background(Color(0xFFF1F5F9), RoundedCornerShape(8.dp))
+                        .background(if (isDarkModeGlobal) Color(0xFF1E293B) else Color(0xFFF1F5F9), RoundedCornerShape(8.dp))
                         .padding(3.dp),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
@@ -583,7 +583,7 @@ fun QuranScreen(onBack: () -> Unit) {
                                 text = filter,
                                 fontSize = 11.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isSelected) Color.White else Color(0xFF64748B)
+                                color = if (isSelected) Color.White else (if (isDarkModeGlobal) Color(0xFF94A3B8) else Color(0xFF64748B))
                             )
                         }
                     }
@@ -641,8 +641,8 @@ fun SurahListItem(surah: Surah, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = BorderStroke(1.dp, Color(0xFFF1F5F9)),
+        colors = CardDefaults.cardColors(containerColor = CardBg),
+        border = BorderStroke(1.dp, if (isDarkModeGlobal) Color(0xFF334155) else Color(0xFFF1F5F9)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp)
     ) {
         Row(
@@ -654,7 +654,7 @@ fun SurahListItem(surah: Surah, onClick: () -> Unit) {
             Box(
                 modifier = Modifier
                     .size(32.dp)
-                    .background(Color(0xFFF0FDF4), CircleShape)
+                    .background(if (isDarkModeGlobal) Color(0xFF022C22) else Color(0xFFF0FDF4), CircleShape)
                     .border(1.dp, PrimaryGreen.copy(alpha = 0.2f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
@@ -711,7 +711,11 @@ fun SurahListItem(surah: Surah, onClick: () -> Unit) {
                     Box(
                         modifier = Modifier
                             .background(
-                                color = if (surah.revelation == "মক্কী") Color(0xFFFEF3C7) else Color(0xFFDCFCE7),
+                                color = if (surah.revelation == "মক্কী") {
+                                    if (isDarkModeGlobal) Color(0xFF78350F) else Color(0xFFFEF3C7)
+                                } else {
+                                    if (isDarkModeGlobal) Color(0xFF064E3B) else Color(0xFFDCFCE7)
+                                },
                                 shape = RoundedCornerShape(4.dp)
                             )
                             .padding(horizontal = 4.dp, vertical = 1.dp)
@@ -720,7 +724,11 @@ fun SurahListItem(surah: Surah, onClick: () -> Unit) {
                             text = surah.revelation,
                             fontSize = 8.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (surah.revelation == "মক্কী") Color(0xFFB45309) else PrimaryGreen
+                            color = if (surah.revelation == "মক্কী") {
+                                if (isDarkModeGlobal) Color(0xFFF59E0B) else Color(0xFFB45309)
+                            } else {
+                                PrimaryGreen
+                            }
                         )
                     }
                     Text(
@@ -918,7 +926,7 @@ fun SurahReadScreen(surah: Surah, onBack: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF1F5F9))
+            .background(BgLight)
     ) {
         Box(
             modifier = Modifier
@@ -1234,7 +1242,11 @@ fun VerseCardItem(
             ),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isPlaying) Color(0xFFF0FDF4) else Color.White
+            containerColor = if (isPlaying) {
+                if (isDarkModeGlobal) Color(0xFF022C22) else Color(0xFFF0FDF4)
+            } else {
+                CardBg
+            }
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
@@ -1246,7 +1258,7 @@ fun VerseCardItem(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFF8FAFC), RoundedCornerShape(8.dp))
+                    .background(if (isDarkModeGlobal) Color(0xFF0F172A) else Color(0xFFF8FAFC), RoundedCornerShape(8.dp))
                     .padding(horizontal = 10.dp, vertical = 6.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically

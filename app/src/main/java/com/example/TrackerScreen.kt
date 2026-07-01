@@ -22,10 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.PrimaryGreen
-import com.example.ui.theme.BgLight
-import com.example.ui.theme.TextDark
-import com.example.ui.theme.TextGray
+import com.example.ui.theme.*
 import com.example.viewmodel.GlobalLanguage
 import com.example.viewmodel.toBengali
 import java.text.SimpleDateFormat
@@ -80,7 +77,7 @@ fun TrackerScreen(onBack: () -> Unit = {}) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(CardBg)
                     .statusBarsPadding()
             ) {
                 Row(
@@ -280,7 +277,7 @@ fun TrackerSection(title: String, content: @Composable () -> Unit) {
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(containerColor = CardBg),
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {

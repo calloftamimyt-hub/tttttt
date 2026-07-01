@@ -1130,7 +1130,7 @@ fun HomeScreen(
                     }
                 }
 
-                val displayName = if (userName.isNotEmpty()) userName else (if (isEng) "Guest User" else "অতিথি ইউজার")
+                val displayName = if (userName.isNotEmpty()) userName else "Halal Circle"
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically
@@ -1209,20 +1209,7 @@ fun HomeScreen(
                         )
                     }
                     
-                    val themePrefs = remember { context.getSharedPreferences("app_theme_prefs", Context.MODE_PRIVATE) }
-                    IconButton(
-                        onClick = {
-                            val currentMode = themePrefs.getBoolean("dark_mode", false)
-                            themePrefs.edit().putBoolean("dark_mode", !currentMode).apply()
-                        }
-                    ) {
-                        Icon(
-                            imageVector = if (isDarkModeGlobal) Icons.Default.LightMode else Icons.Default.DarkMode,
-                            contentDescription = "Toggle Theme",
-                            tint = if (isDarkModeGlobal) Color(0xFFFFD700) else TextDark,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
+
                     
                     IconButton(onClick = onOpenFoundationPage) {
                         Icon(

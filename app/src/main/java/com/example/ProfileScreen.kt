@@ -335,7 +335,7 @@ fun ProfileScreen(
             ) {
                 // 1. Redesigned Premium Profile Header Card matching the mock - Full Screen Edge-to-Edge
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = CardBg),
                     shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp),
                     border = null,
                     modifier = Modifier
@@ -376,8 +376,8 @@ fun ProfileScreen(
                                 modifier = Modifier
                                     .padding(top = 37.dp) // 85.dp backdrop height - 48.dp (half of 96.dp circle) = 37.dp
                                     .size(96.dp)
-                                    .background(Color.White, CircleShape)
-                                    .border(1.dp, Color(0xFFE5E7EB), CircleShape),
+                                    .background(CardBg, CircleShape)
+                                    .border(1.dp, if (isDarkModeGlobal) Color(0xFF334155) else Color(0xFFE5E7EB), CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (currentUser != null) {
@@ -1176,7 +1176,7 @@ fun EditProfileScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.White)
+                .background(CardBg)
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -1216,9 +1216,9 @@ fun EditProfileScreen(
             
             // 1. Large Profile Logo Avatar Preview and choice selector
             Card(
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = CardBg),
                 shape = RoundedCornerShape(16.dp),
-                border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
+                border = BorderStroke(1.dp, if (isDarkModeGlobal) Color(0xFF334155) else Color(0xFFE5E7EB)),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
@@ -1345,9 +1345,9 @@ fun EditProfileScreen(
 
             // 2. Personal Information Fields Card
             Card(
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = CardBg),
                 shape = RoundedCornerShape(16.dp),
-                border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
+                border = BorderStroke(1.dp, if (isDarkModeGlobal) Color(0xFF334155) else Color(0xFFE5E7EB)),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
@@ -1485,7 +1485,7 @@ fun EditProfileScreen(
             contentAlignment = Alignment.Center
         ) {
             Card(
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = CardBg),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Row(
@@ -1526,7 +1526,7 @@ fun ProfileTrackerHistoryScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.White)
+                .background(CardBg)
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -1550,9 +1550,9 @@ fun ProfileTrackerHistoryScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         Card(
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(containerColor = CardBg),
             shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
+            border = BorderStroke(1.dp, if (isDarkModeGlobal) Color(0xFF334155) else Color(0xFFE5E7EB)),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
@@ -1679,9 +1679,9 @@ fun TrackerHistoryCard(tracker: DailyTracker) {
     if (tracker.isha) prayersCount++
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = CardBg),
         shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
+        border = BorderStroke(1.dp, if (isDarkModeGlobal) Color(0xFF334155) else Color(0xFFE5E7EB)),
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
@@ -1849,7 +1849,7 @@ fun ProfileOptionRow(
     onClick: () -> Unit
 ) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = CardBg),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp),
         modifier = Modifier
