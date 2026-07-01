@@ -2,6 +2,7 @@ package com.example
 
 import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import android.provider.Settings
 import android.os.PowerManager
 import android.content.ComponentName
@@ -381,17 +382,21 @@ fun WebsiteBlockerScreen(onBack: () -> Unit) {
             confirmButton = {
                 Button(
                     onClick = {
-                        // Launch settings corresponding to missing permissions
-                        if (!isAccessibilityServiceEnabled(context)) {
-                            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
-                                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        try {
+                            if (!isAccessibilityServiceEnabled(context)) {
+                                val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                }
+                                context.startActivity(intent)
+                            } else if (!isBatteryOptimizationIgnored(context)) {
+                                val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                                    data = android.net.Uri.parse("package:${context.packageName}")
+                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                }
+                                context.startActivity(intent)
                             }
-                            context.startActivity(intent)
-                        } else if (!isBatteryOptimizationIgnored(context)) {
-                            val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
-                                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                            }
-                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "Error opening settings", Toast.LENGTH_SHORT).show()
                         }
 
                         // Enable immediately

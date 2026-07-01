@@ -119,8 +119,19 @@ class MainActivity : ComponentActivity() {
         handleIntent(intent)
         enableEdgeToEdge()
         setContent {
-            MyApplicationTheme {
-                val context = LocalContext.current
+            val context = LocalContext.current
+            val themePrefs = remember(context) { context.getSharedPreferences("app_theme_prefs", Context.MODE_PRIVATE) }
+            val isDarkMode by remember(context) {
+                val flow = kotlinx.coroutines.flow.MutableStateFlow(themePrefs.getBoolean("dark_mode", false))
+                themePrefs.registerOnSharedPreferenceChangeListener { sharedPreferences, key ->
+                    if (key == "dark_mode") {
+                        flow.value = sharedPreferences.getBoolean(key, false)
+                    }
+                }
+                flow
+            }.collectAsState()
+
+            MyApplicationTheme(darkTheme = isDarkMode) {
                 val activePlatform = interceptedPlatformName
 
                 // Handle starting/stopping service reactively based on preferences

@@ -518,16 +518,11 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 2. Large category options card (slightly rounded rectangular)
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
+                // 2. Large category options (Cards)
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
                         
                         // Action Row mapping to Full-Screen Tracker History Page
                         ProfileOptionRow(
@@ -539,8 +534,6 @@ fun ProfileScreen(
                             }
                         )
 
-                        ProfileDivider()
-
                         // Auto Silent
                         ProfileOptionRow(
                             title = "অটো সাইলেন্ট",
@@ -550,8 +543,6 @@ fun ProfileScreen(
                                 showAutoSilentFullScreen = true
                             }
                         )
-
-                        ProfileDivider()
 
                         // Social Media Blocker
                         ProfileOptionRow(
@@ -563,8 +554,6 @@ fun ProfileScreen(
                             }
                         )
 
-                        ProfileDivider()
-
                         // Website Blocker
                         ProfileOptionRow(
                             title = "ওয়েবসাইট ব্লকার",
@@ -574,8 +563,6 @@ fun ProfileScreen(
                                 showWebsiteBlockerFullScreen = true
                             }
                         )
-
-                        ProfileDivider()
 
                         // Saved Duas
                         ProfileOptionRow(
@@ -587,8 +574,6 @@ fun ProfileScreen(
                             }
                         )
 
-                        ProfileDivider()
-
                         // Bookmarked Ayahs
                         ProfileOptionRow(
                             title = "বুকমার্ক করা আয়াত",
@@ -599,8 +584,6 @@ fun ProfileScreen(
                             }
                         )
 
-                        ProfileDivider()
-
                         // Favorite Hadiths
                         ProfileOptionRow(
                             title = "সেভ করা হাদিস",
@@ -610,36 +593,29 @@ fun ProfileScreen(
                                 onNavigateToSavedHadiths()
                             }
                         )
-                    }
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 3. Settings card (slightly rounded rectangular)
+                // 3. Settings card
                 Text(
-                    text = LocalAppStrings.current.settings,
+                    text = if (GlobalLanguage.isEnglish) "Settings" else "সেটিংস",
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
                     color = TextDark,
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
                 )
 
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Column(modifier = Modifier.padding(vertical = 4.dp)) {
                         ProfileOptionRow(
-                            title = LocalAppStrings.current.settings,
+                            title = if (GlobalLanguage.isEnglish) "App Settings" else "অ্যাপ সেটিংস",
                             icon = Icons.Filled.Settings,
                             iconColor = Color(0xFF4B5563),
                             onClick = onNavigateToSettings
                         )
-                    }
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -653,13 +629,9 @@ fun ProfileScreen(
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
                 )
 
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     val openUrl: (String) -> Unit = { url ->
                         try {
@@ -670,7 +642,6 @@ fun ProfileScreen(
                         }
                     }
 
-                    Column(modifier = Modifier.padding(vertical = 4.dp)) {
                         ProfileOptionRow(
                             title = "Support WhatsApp",
                             icon = Icons.Filled.Chat,
@@ -680,42 +651,36 @@ fun ProfileScreen(
                                 openUrl("https://wa.me/8801909902319?text=${android.net.Uri.encode(message)}") 
                             }
                         )
-                        ProfileDivider()
                         ProfileOptionRow(
                             title = "Support Telegram",
                             icon = Icons.Filled.Send,
                             iconColor = Color(0xFF0088CC),
                             onClick = { openUrl("https://t.me/calloftamim") }
                         )
-                        ProfileDivider()
                         ProfileOptionRow(
                             title = "Facebook Group",
                             icon = Icons.Filled.Groups,
                             iconColor = Color(0xFF1877F2),
                             onClick = { openUrl("https://www.facebook.com/share/g/184FQ3v2Rq/") }
                         )
-                        ProfileDivider()
                         ProfileOptionRow(
                             title = "WhatsApp Channel",
                             icon = Icons.Filled.Campaign,
                             iconColor = Color(0xFF25D366),
                             onClick = { openUrl("https://whatsapp.com/channel/0029Vb6cwrFCBtxJKy95Xh0S") }
                         )
-                        ProfileDivider()
                         ProfileOptionRow(
                             title = "Telegram Group",
                             icon = Icons.Filled.Forum,
                             iconColor = Color(0xFF0088CC),
                             onClick = { openUrl("https://t.me/halalcirclesupport") }
                         )
-                        ProfileDivider()
                         ProfileOptionRow(
                             title = "Telegram Channel",
                             icon = Icons.Filled.Campaign,
                             iconColor = Color(0xFF0088CC),
                             onClick = { openUrl("https://t.me/halalcircle") }
                         )
-                    }
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -729,50 +694,40 @@ fun ProfileScreen(
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
                 )
 
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Column(modifier = Modifier.padding(vertical = 4.dp)) {
                         ProfileOptionRow(
                             title = "Privacy Policy",
                             icon = Icons.Filled.PrivacyTip,
                             iconColor = Color(0xFF6366F1),
                             onClick = { showPrivacyPolicy = true }
                         )
-                        ProfileDivider()
                         ProfileOptionRow(
                             title = "Terms & Conditions",
                             icon = Icons.Filled.Description,
                             iconColor = Color(0xFF8B5CF6),
                             onClick = { showTerms = true }
                         )
-                        ProfileDivider()
                         ProfileOptionRow(
                             title = "Disclaimer",
                             icon = Icons.Filled.Gavel,
                             iconColor = Color(0xFFF59E0B),
                             onClick = { showDisclaimer = true }
                         )
-                        ProfileDivider()
                         ProfileOptionRow(
                             title = "About App",
                             icon = Icons.Filled.Info,
                             iconColor = Color(0xFF3B82F6),
                             onClick = { showAbout = true }
                         )
-                        ProfileDivider()
                         ProfileOptionRow(
                             title = "Contact Us",
                             icon = Icons.Filled.ContactSupport,
                             iconColor = Color(0xFF14B8A6),
                             onClick = { showContactUs = true }
                         )
-                    }
                 }
 
                 // If logged in, show logout and delete account
@@ -787,15 +742,10 @@ fun ProfileScreen(
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
                     )
 
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        shape = RoundedCornerShape(16.dp),
-                        border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 6.dp)
+                    Column(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Column(modifier = Modifier.padding(vertical = 4.dp)) {
                             ProfileOptionRow(
                                 title = if (GlobalLanguage.isEnglish) "Sign Out" else "লগআউট করুন",
                                 icon = Icons.Filled.Logout,
@@ -808,18 +758,7 @@ fun ProfileScreen(
                                     }
                                 }
                             )
-                        }
-                    }
-                    
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        shape = RoundedCornerShape(16.dp),
-                        border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 6.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 4.dp)) {
+
                             ProfileOptionRow(
                                 title = if (GlobalLanguage.isEnglish) "Delete Account" else "অ্যাকাউন্ট মুছে ফেলুন",
                                 icon = Icons.Filled.Delete,
@@ -829,7 +768,6 @@ fun ProfileScreen(
                                     Toast.makeText(context, if (GlobalLanguage.isEnglish) "Account deletion request sent" else "অ্যাকাউন্ট মুছে ফেলার অনুরোধ পাঠানো হয়েছে", Toast.LENGTH_LONG).show()
                                 }
                             )
-                        }
                     }
                 }
 
@@ -1873,7 +1811,10 @@ fun ProfileOptionRow(
     iconColor: Color,
     onClick: () -> Unit
 ) {
-    Row(
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp),
         modifier = Modifier
             .fillMaxWidth()
             .clickable(
@@ -1881,13 +1822,17 @@ fun ProfileOptionRow(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = LocalIndication.current
             )
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
                     .size(38.dp)
                     .background(
                         color = iconColor,
@@ -1917,6 +1862,7 @@ fun ProfileOptionRow(
             tint = Color(0xFFC7C7CC),
             modifier = Modifier.size(20.dp)
         )
+    }
     }
 }
 
