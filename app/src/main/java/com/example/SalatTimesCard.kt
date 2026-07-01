@@ -133,7 +133,63 @@ fun SalatTimesCard(state: ViewState) {
                             val isActive = prayer.internalName == state.currentPrayerName
                             val isChecked = checkedState[prayer.internalName] ?: false
                             
-                            Row(
+                            val currentActive = state.currentPrayerName
+                            val currentHour = state.currentHourDecimal
+                            val progress = when (prayer.internalName) {
+                                "Fajr" -> {
+                                    if (currentActive == "Fajr") {
+                                        val diff = prayer.endTimeHours - prayer.startTimeHours
+                                        if (diff > 0) ((currentHour - prayer.startTimeHours) / diff).coerceIn(0.0, 1.0).toFloat() else 0f
+                                    } else if (currentActive in listOf("Duha", "Dhuhr", "Asr", "Maghrib", "Isha")) {
+                                        1f
+                                    } else {
+                                        0f
+                                    }
+                                }
+                                "Dhuhr" -> {
+                                    if (currentActive == "Dhuhr") {
+                                        val diff = prayer.endTimeHours - prayer.startTimeHours
+                                        if (diff > 0) ((currentHour - prayer.startTimeHours) / diff).coerceIn(0.0, 1.0).toFloat() else 0f
+                                    } else if (currentActive in listOf("Asr", "Maghrib", "Isha")) {
+                                        1f
+                                    } else {
+                                        0f
+                                    }
+                                }
+                                "Asr" -> {
+                                    if (currentActive == "Asr") {
+                                        val diff = prayer.endTimeHours - prayer.startTimeHours
+                                        if (diff > 0) ((currentHour - prayer.startTimeHours) / diff).coerceIn(0.0, 1.0).toFloat() else 0f
+                                    } else if (currentActive in listOf("Maghrib", "Isha")) {
+                                        1f
+                                    } else {
+                                        0f
+                                    }
+                                }
+                                "Maghrib" -> {
+                                    if (currentActive == "Maghrib") {
+                                        val diff = prayer.endTimeHours - prayer.startTimeHours
+                                        if (diff > 0) ((currentHour - prayer.startTimeHours) / diff).coerceIn(0.0, 1.0).toFloat() else 0f
+                                    } else if (currentActive == "Isha") {
+                                        1f
+                                    } else {
+                                        0f
+                                    }
+                                }
+                                "Isha" -> {
+                                    if (currentActive == "Isha") {
+                                        val shiftedEnd = prayer.endTimeHours + 24.0
+                                        val shiftedCurrent = if (currentHour < prayer.startTimeHours) currentHour + 24.0 else currentHour
+                                        val diff = shiftedEnd - prayer.startTimeHours
+                                        if (diff > 0) ((shiftedCurrent - prayer.startTimeHours) / diff).coerceIn(0.0, 1.0).toFloat() else 0f
+                                    } else {
+                                        0f
+                                    }
+                                }
+                                else -> 0f
+                            }
+                            
+                            Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(8.dp))
@@ -157,50 +213,87 @@ fun SalatTimesCard(state: ViewState) {
                                         android.widget.Toast.makeText(context, toastMsg, android.widget.Toast.LENGTH_SHORT).show()
                                     }
                                     .background(if (isActive) lightGreen.copy(alpha = 0.5f) else Color.Transparent)
-                                    .padding(horizontal = 8.dp, vertical = 10.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                                    .padding(horizontal = 8.dp, vertical = 6.dp)
                             ) {
-                                // Left Side: Icon + Prayer Name
                                 Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(
-                                        imageVector = prayer.icon,
-                                        contentDescription = null,
-                                        tint = if (isActive) primaryGreen else Color(0xFF475569),
-                                        modifier = Modifier.size(18.dp)
+                                    // Left Side: Icon + Prayer Name
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = prayer.icon,
+                                            contentDescription = null,
+                                            tint = if (isActive) primaryGreen else Color(0xFF475569),
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        
+                                        Text(
+                                            text = prayer.name,
+                                            fontSize = 14.sp,
+                                            fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.Bold,
+                                            color = if (isActive) primaryGreen else Color(0xFF1E293B)
+                                        )
+                                    }
+                                    
+                                    // Middle Side: Start Time - End Time range (e.g., ০৩:৪৭ - ০৫:১৩)
+                                    Text(
+                                        text = "${formatTimeNoAmPm(prayer.startTimeHours)} - ${formatTimeNoAmPm(prayer.endTimeHours)}",
+                                        fontSize = 14.sp,
+                                        fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.SemiBold,
+                                        color = if (isActive) primaryGreen else Color(0xFF334155),
+                                        modifier = Modifier.padding(end = 16.dp)
                                     )
                                     
-                                    Text(
-                                        text = prayer.name,
-                                        fontSize = 14.sp,
-                                        fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.Bold,
-                                        color = if (isActive) primaryGreen else Color(0xFF1E293B)
-                                    )
+                                    // Right Side: Simple Radio/Checkbox Circle
+                                    Box(
+                                        modifier = Modifier.size(24.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = if (isChecked) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
+                                            contentDescription = null,
+                                            tint = if (isChecked) primaryGreen else Color(0xFFCBD5E1),
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
                                 }
                                 
-                                // Middle Side: Start Time - End Time range (e.g., ০৩:৪৭ - ০৫:১৩)
-                                Text(
-                                    text = "${formatTimeNoAmPm(prayer.startTimeHours)} - ${formatTimeNoAmPm(prayer.endTimeHours)}",
-                                    fontSize = 14.sp,
-                                    fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.SemiBold,
-                                    color = if (isActive) primaryGreen else Color(0xFF334155),
-                                    modifier = Modifier.padding(end = 16.dp)
-                                )
+                                // Beautiful, premium visual progress bar
+                                Spacer(modifier = Modifier.height(6.dp))
                                 
-                                // Right Side: Simple Radio/Checkbox Circle
                                 Box(
-                                    modifier = Modifier.size(24.dp),
-                                    contentAlignment = Alignment.Center
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 4.dp, vertical = 2.dp)
                                 ) {
-                                    Icon(
-                                        imageVector = if (isChecked) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
-                                        contentDescription = null,
-                                        tint = if (isChecked) primaryGreen else Color(0xFFCBD5E1),
-                                        modifier = Modifier.size(20.dp)
-                                    )
+                                    val trackColor = when {
+                                        isActive -> primaryGreen.copy(alpha = 0.15f)
+                                        progress == 1f -> Color(0xFFE2E8F0)
+                                        else -> Color(0xFFF1F5F9)
+                                    }
+                                    val barHeight = if (isActive) 5.dp else 2.dp
+                                    val progressColor = if (isActive) primaryGreen else if (progress == 1f) Color(0xFFCBD5E1) else Color.Transparent
+                                    
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(barHeight)
+                                            .background(trackColor, RoundedCornerShape(2.5.dp))
+                                    ) {
+                                        if (progress > 0f) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth(progress)
+                                                    .height(barHeight)
+                                                    .background(progressColor, RoundedCornerShape(2.5.dp))
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
