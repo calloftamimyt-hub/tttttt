@@ -3,7 +3,6 @@ package com.example.viewmodel
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Looper
-import android.location.Geocoder
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.calculator.PrayerCalculator
@@ -22,13 +21,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.net.HttpURLConnection
-import java.net.URL
-import org.json.JSONObject
 import java.util.Calendar
 import java.util.TimeZone
 import java.util.Date
@@ -90,26 +82,11 @@ data class ViewState(
     val forbiddenNoonEnd: String = "০০:০০",
     val forbiddenSunset: String = "০০:০০",
     val forbiddenSunsetEnd: String = "০০:০০",
-    val currentHourDecimal: Double = 0.0,
-    val isRainy: Boolean = false,
     val currentPrayerName: String = "",
     val currentPrayerNameBen: String = "",
     val rotatingNames: List<String> = emptyList(),
     val madhab: Int = 2, // 1 for Shafi, 2 for Hanafi
-    val error: String? = null,
-    val fajrCountdown: String = "",
-    val dhuhrCountdown: String = "",
-    val asrCountdown: String = "",
-    val maghribCountdown: String = "",
-    val ishaCountdown: String = "",
-    val sehriCountdown: String = "",
-    val iftarCountdown: String = "",
-    val sunriseCountdown: String = "",
-    val sunsetCountdown: String = "",
-    val forbiddenSunriseCountdown: String = "",
-    val forbiddenNoonCountdown: String = "",
-    val forbiddenSunsetCountdown: String = "",
-    val isIftarCountdown: Boolean = false
+    val error: String? = null
 )
 
 class PrayerViewModel : ViewModel() {
@@ -238,8 +215,9 @@ class PrayerViewModel : ViewModel() {
     fun setLocationManually(context: Context, districtName: String, lat: Double, lng: Double) {
         lastLat = lat
         lastLng = lng
-        val calculatedOffset = Math.round(lng / 15.0).toDouble()
-        lastOffset = calculatedOffset
+        lastOffset = 6.0 // Note: We might need to get real timezone offset, maybe we can fetch it, but 6 is BST. Let's try to calculate offset from current time and lat/lng if we can, or just keep 6.0? Wait, TimeZone.getDefault() is better.
+        val timeZoneOffset = TimeZone.getDefault().getOffset(System.currentTimeMillis()) / (1000.0 * 60.0 * 60.0)
+        lastOffset = timeZoneOffset
         
         hasLocationData = true
         _state.update { 
@@ -274,34 +252,10 @@ class PrayerViewModel : ViewModel() {
     }
 
     fun setAutoLocation(context: Context) {
-        setAutoLocationEnabled(context, true)
-    }
-
-    fun setAutoLocationEnabled(context: Context, enabled: Boolean) {
-        _state.update { it.copy(isAutoLocation = enabled) }
+        _state.update { it.copy(isAutoLocation = true) }
         val alarmPrefs = context.getSharedPreferences("prayer_alarm_prefs", Context.MODE_PRIVATE)
-        alarmPrefs.edit().putBoolean("is_auto_location", enabled).apply()
-        if (enabled) {
-            startLocationUpdates(context)
-        } else {
-            locationCallback?.let {
-                fusedLocationClient?.removeLocationUpdates(it)
-                locationCallback = null
-            }
-            val savedDist = alarmPrefs.getString("saved_district", "Dhaka") ?: "Dhaka"
-            _state.update {
-                it.copy(
-                    locationName = savedDist,
-                    selectedDistrict = savedDist
-                )
-            }
-            refreshState()
-        }
-        com.example.widget.WidgetUtils.updateAllWidgets(context)
-    }
-
-    fun forceRefreshLocation(context: Context) {
-        setAutoLocationEnabled(context, true)
+        alarmPrefs.edit().putBoolean("is_auto_location", true).apply()
+        startLocationUpdates(context)
     }
 
     fun toggleAlarm(context: Context, prayerName: String) {
@@ -373,64 +327,34 @@ class PrayerViewModel : ViewModel() {
         // Process resolved location helper
         fun processResolvedLocation(location: android.location.Location) {
             if (!_state.value.isAutoLocation) return
-            _state.update { it.copy(isLoading = true) }
-            
-            viewModelScope.launch(Dispatchers.IO) {
-                val calculatedOffset = Math.round(location.longitude / 15.0).toDouble()
-                lastLat = location.latitude
-                lastLng = location.longitude
-                lastOffset = calculatedOffset
-                hasLocationData = true
+            val timeZoneOffset = TimeZone.getDefault().getOffset(System.currentTimeMillis()) / (1000.0 * 60.0 * 60.0)
+            lastLat = location.latitude
+            lastLng = location.longitude
+            lastOffset = timeZoneOffset
+            hasLocationData = true
 
-                // Try to resolve city name using Geocoder on background
-                var resolvedCityName = if (GlobalLanguage.isEnglish) "My Location" else "আমার অবস্থান"
-                try {
-                    val geocoder = Geocoder(context, Locale.getDefault())
-                    val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
-                    val address = addresses?.firstOrNull()
-                    if (address != null) {
-                        resolvedCityName = address.locality ?: address.subAdminArea ?: address.adminArea ?: address.featureName ?: resolvedCityName
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
+            val alarmPrefs = context.getSharedPreferences("prayer_alarm_prefs", Context.MODE_PRIVATE)
+            alarmPrefs.edit()
+                .putFloat("lat", lastLat.toFloat())
+                .putFloat("lng", lastLng.toFloat())
+                .putFloat("offset", lastOffset.toFloat())
+                .apply()
 
-                val alarmPrefs = context.getSharedPreferences("prayer_alarm_prefs", Context.MODE_PRIVATE)
-                alarmPrefs.edit()
-                    .putFloat("lat", lastLat.toFloat())
-                    .putFloat("lng", lastLng.toFloat())
-                    .putFloat("offset", lastOffset.toFloat())
-                    .putString("saved_district", resolvedCityName)
-                    .apply()
+            val times = PrayerCalculator.calculatePrayerTimes(lastLat, lastLng, lastOffset, lastMadhab)
+            calculateForbiddenTimes(times)
+            AlarmHelper.scheduleNextPrayer(
+                context = context, 
+                lat = lastLat, 
+                lng = lastLng, 
+                timezoneOffsetHor = lastOffset, 
+                alarms = _state.value.alarms,
+                locationName = "আমার অবস্থান",
+                isAuto = true
+            )
 
-                val times = PrayerCalculator.calculatePrayerTimes(lastLat, lastLng, lastOffset, lastMadhab)
-                
-                withContext(Dispatchers.Main) {
-                    calculateForbiddenTimes(times)
-                    AlarmHelper.scheduleNextPrayer(
-                        context = context, 
-                        lat = lastLat, 
-                        lng = lastLng, 
-                        timezoneOffsetHor = lastOffset, 
-                        alarms = _state.value.alarms,
-                        locationName = resolvedCityName,
-                        isAuto = true
-                    )
-
-                    _state.update { 
-                        it.copy(
-                            isLoading = false,
-                            prayerTimes = times, 
-                            locationName = resolvedCityName, 
-                            selectedDistrict = resolvedCityName, 
-                            latitude = lastLat, 
-                            longitude = lastLng
-                        ) 
-                    }
-                    updateNextPrayer(times)
-                    com.example.widget.WidgetUtils.updateAllWidgets(context)
-                }
-            }
+            _state.update { it.copy(prayerTimes = times, locationName = "আমার অবস্থান", latitude = lastLat, longitude = lastLng) }
+            updateNextPrayer(times)
+            com.example.widget.WidgetUtils.updateAllWidgets(context)
         }
 
         // If we have a very fresh location from LocationManager, prioritize it
@@ -441,122 +365,44 @@ class PrayerViewModel : ViewModel() {
 
         // Query FusedLocationProviderClient first as it can be accurate, falling back immediately to LocationManager
         try {
-            fusedLocationClient?.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
-                ?.addOnSuccessListener { location ->
-                    if (location != null) {
-                        processResolvedLocation(location)
-                    } else if (lastKnownLoc != null) {
-                        processResolvedLocation(lastKnownLoc)
-                    } else {
-                        // Fallback to LocationCallback to actively fetch location
-                        try {
-                            val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000)
-                                .setMaxUpdates(1)
-                                .build()
-                            val newCallback = object : LocationCallback() {
-                                override fun onLocationResult(result: LocationResult) {
-                                    result.lastLocation?.let {
-                                        processResolvedLocation(it)
-                                    }
-                                    fusedLocationClient?.removeLocationUpdates(this)
-                                }
+            fusedLocationClient?.lastLocation?.addOnSuccessListener { location ->
+                if (location != null) {
+                    processResolvedLocation(location)
+                } else if (lastKnownLoc != null) {
+                    processResolvedLocation(lastKnownLoc)
+                } else {
+                    // Try to request a single update via LocationManager to avoid continuous monitoring AppOps errors
+                    try {
+                        locationManager?.let { mgr ->
+                            val provider = if (mgr.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER)) {
+                                android.location.LocationManager.NETWORK_PROVIDER
+                            } else {
+                                android.location.LocationManager.GPS_PROVIDER
                             }
-                            locationCallback = newCallback
-                            fusedLocationClient?.requestLocationUpdates(locationRequest, newCallback, Looper.getMainLooper())
-                        } catch (ex: Exception) {
-                            ex.printStackTrace()
+                            if (mgr.isProviderEnabled(provider)) {
+                                mgr.requestSingleUpdate(provider, object : android.location.LocationListener {
+                                    override fun onLocationChanged(loc: android.location.Location) {
+                                        processResolvedLocation(loc)
+                                    }
+                                    override fun onStatusChanged(provider: String?, status: Int, extras: android.os.Bundle?) {}
+                                    override fun onProviderEnabled(provider: String) {}
+                                    override fun onProviderDisabled(provider: String) {}
+                                }, Looper.getMainLooper())
+                            }
                         }
-                    }
-                }?.addOnFailureListener {
-                    if (lastKnownLoc != null) {
-                        processResolvedLocation(lastKnownLoc)
+                    } catch (ex: Exception) {
+                        ex.printStackTrace()
                     }
                 }
+            }?.addOnFailureListener {
+                if (lastKnownLoc != null) {
+                    processResolvedLocation(lastKnownLoc)
+                }
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             if (lastKnownLoc != null) {
                 processResolvedLocation(lastKnownLoc)
-            }
-        }
-    }
-    
-    fun detectLocationViaWeb(context: Context) {
-        _state.update { it.copy(isLoading = true, error = null) }
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val url = URL("https://ipapi.co/json/")
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "GET"
-                connection.connectTimeout = 5000
-                connection.readTimeout = 5000
-                
-                val responseCode = connection.responseCode
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    val reader = BufferedReader(InputStreamReader(connection.inputStream))
-                    val response = StringBuilder()
-                    var line: String?
-                    while (reader.readLine().also { line = it } != null) {
-                        response.append(line)
-                    }
-                    reader.close()
-                    
-                    val json = JSONObject(response.toString())
-                    val city = json.optString("city", if (GlobalLanguage.isEnglish) "Detected City" else "সনাক্তকৃত শহর")
-                    val lat = json.getDouble("latitude")
-                    val lng = json.getDouble("longitude")
-                    val calculatedOffset = Math.round(lng / 15.0).toDouble()
-                    
-                    lastLat = lat
-                    lastLng = lng
-                    lastOffset = calculatedOffset
-                    hasLocationData = true
-                    
-                    val alarmPrefs = context.getSharedPreferences("prayer_alarm_prefs", Context.MODE_PRIVATE)
-                    alarmPrefs.edit()
-                        .putBoolean("is_auto_location", true)
-                        .putString("saved_district", city)
-                        .putFloat("lat", lat.toFloat())
-                        .putFloat("lng", lng.toFloat())
-                        .putFloat("offset", calculatedOffset.toFloat())
-                        .apply()
-                        
-                    val times = PrayerCalculator.calculatePrayerTimes(lat, lng, calculatedOffset, lastMadhab)
-                    
-                    withContext(Dispatchers.Main) {
-                        calculateForbiddenTimes(times)
-                        AlarmHelper.scheduleNextPrayer(
-                            context = context, 
-                            lat = lat, 
-                            lng = lng, 
-                            timezoneOffsetHor = calculatedOffset, 
-                            alarms = _state.value.alarms,
-                            locationName = city,
-                            isAuto = true
-                        )
-                        _state.update { 
-                            it.copy(
-                                isLoading = false,
-                                isAutoLocation = true,
-                                locationName = city,
-                                selectedDistrict = city,
-                                latitude = lat,
-                                longitude = lng,
-                                prayerTimes = times
-                            ) 
-                        }
-                        updateNextPrayer(times)
-                        com.example.widget.WidgetUtils.updateAllWidgets(context)
-                    }
-                } else {
-                    withContext(Dispatchers.Main) {
-                        _state.update { it.copy(isLoading = false, error = "HTTP error: $responseCode") }
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                withContext(Dispatchers.Main) {
-                    _state.update { it.copy(isLoading = false, error = "Error: ${e.message}") }
-                }
             }
         }
     }
@@ -566,153 +412,180 @@ class PrayerViewModel : ViewModel() {
     }
 
     private fun updateNextPrayer(times: PrayerTimes) {
-        startCountdownTimer()
-    }
-
-    private fun formatDiff(diffInHours: Double, isEnglish: Boolean): String {
-        var d = diffInHours
-        if (d.isNaN() || d.isInfinite()) {
-            return if (isEnglish) "00:00:00" else "০০:০০:০০"
-        }
-        while (d < 0) d += 24.0
-        d = d % 24.0
+        val calendar = Calendar.getInstance()
+        val currentHourDecimal = calendar.get(Calendar.HOUR_OF_DAY) + calendar.get(Calendar.MINUTE) / 60.0 + calendar.get(Calendar.SECOND) / 3600.0
         
-        val totalSeconds = (d * 3600).toInt()
-        val h = totalSeconds / 3600
-        val m = (totalSeconds % 3600) / 60
-        val s = totalSeconds % 60
-        val str = String.format("%02d:%02d:%02d", h, m, s)
-        return if (isEnglish) str else str.toBengali()
+        val sunriseHours = times.sunriseHours
+        val dhuhrHours = times.dhuhrHours
+        val asrHours = times.asrHours
+        val maghribHours = times.maghribHours
+        val ishaHours = times.ishaHours
+        val fajrHours = times.fajrHours
+
+        // Check if we are in the Nafl/Chasht period (Sunrise to Dhuhr)
+        val isNaflPeriod = currentHourDecimal >= sunriseHours && currentHourDecimal < dhuhrHours
+
+        var currentName = ""
+        var currentNameBen = ""
+        var currentStartTime = 0.0
+        var currentEndTime = 0.0
+
+        var nextName = ""
+        var nextNameBen = ""
+
+        if (isNaflPeriod) {
+            // It's Nafl period! Between Sunrise and Dhuhr.
+            currentName = "Duha" // triggers rotating names in center of circular timer
+            currentNameBen = if (GlobalLanguage.isEnglish) "Chasht" else "চাশত"
+            currentStartTime = sunriseHours
+            currentEndTime = dhuhrHours
+
+            nextName = "Dhuhr"
+            nextNameBen = if (GlobalLanguage.isEnglish) "Dhuhr" else "যোহর"
+        } else {
+            // Find current and next among the 5 daily prayers
+            // Fajr period: starts at fajrHours, ends at sunriseHours
+            if (currentHourDecimal >= fajrHours && currentHourDecimal < sunriseHours) {
+                currentName = "Fajr"
+                currentNameBen = if (GlobalLanguage.isEnglish) "Fajr" else "ফজর"
+                currentStartTime = fajrHours
+                currentEndTime = sunriseHours
+
+                nextName = "Dhuhr"
+                nextNameBen = if (GlobalLanguage.isEnglish) "Dhuhr" else "যোহর"
+            } 
+            // Dhuhr period: dhuhrHours to asrHours
+            else if (currentHourDecimal >= dhuhrHours && currentHourDecimal < asrHours) {
+                currentName = "Dhuhr"
+                currentNameBen = if (GlobalLanguage.isEnglish) "Dhuhr" else "যোহর"
+                currentStartTime = dhuhrHours
+                currentEndTime = asrHours
+
+                nextName = "Asr"
+                nextNameBen = if (GlobalLanguage.isEnglish) "Asr" else "আসর"
+            }
+            // Asr period: asrHours to maghribHours
+            else if (currentHourDecimal >= asrHours && currentHourDecimal < maghribHours) {
+                currentName = "Asr"
+                currentNameBen = if (GlobalLanguage.isEnglish) "Asr" else "আসর"
+                currentStartTime = asrHours
+                currentEndTime = maghribHours
+
+                nextName = "Maghrib"
+                nextNameBen = if (GlobalLanguage.isEnglish) "Maghrib" else "মাগরিব"
+            }
+            // Maghrib period: maghribHours to ishaHours
+            else if (currentHourDecimal >= maghribHours && currentHourDecimal < ishaHours) {
+                currentName = "Maghrib"
+                currentNameBen = if (GlobalLanguage.isEnglish) "Maghrib" else "মাগরিব"
+                currentStartTime = maghribHours
+                currentEndTime = ishaHours
+
+                nextName = "Isha"
+                nextNameBen = if (GlobalLanguage.isEnglish) "Isha" else "এশা"
+            }
+            // Isha period: ishaHours to next Fajr (with midnight rollover check)
+            else {
+                currentName = "Isha"
+                currentNameBen = if (GlobalLanguage.isEnglish) "Isha" else "এশা"
+                
+                if (currentHourDecimal >= ishaHours) {
+                    currentStartTime = ishaHours
+                    val tomorrow = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 1) }
+                    val tomorrowTimes = PrayerCalculator.calculatePrayerTimes(lastLat, lastLng, lastOffset, lastMadhab, tomorrow)
+                    currentEndTime = tomorrowTimes.fajrHours + 24.0
+                } else {
+                    // past midnight but before Fajr
+                    val yesterday = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -1) }
+                    val yesterdayTimes = PrayerCalculator.calculatePrayerTimes(lastLat, lastLng, lastOffset, lastMadhab, yesterday)
+                    currentStartTime = yesterdayTimes.ishaHours - 24.0
+                    currentEndTime = fajrHours
+                }
+
+                nextName = "Fajr"
+                nextNameBen = if (GlobalLanguage.isEnglish) "Fajr" else "ফজর"
+            }
+        }
+
+        _state.update { 
+            it.copy(
+                currentPrayerName = currentName, 
+                currentPrayerNameBen = currentNameBen,
+                nextPrayerName = nextName,
+                nextPrayerNameBen = nextNameBen
+            ) 
+        }
+        
+        // Handle rotating names for Nafl period (Between Sunrise and Dhuhr)
+        val rotating = if (isNaflPeriod) {
+            if (GlobalLanguage.isEnglish) listOf("Ishraq", "Chasht", "Duha") 
+            else listOf("ইশরাক", "চাশত", "দোহা")
+        } else {
+            emptyList()
+        }
+        _state.update { it.copy(rotatingNames = rotating) }
+
+        startCountdownTimer(currentEndTime, currentStartTime, times)
     }
 
-    private fun startCountdownTimer() {
+    private fun startCountdownTimer(targetHour: Double, startHour: Double, todayTimes: PrayerTimes) {
         timerJob?.cancel()
-        timerJob = viewModelScope.launch(Dispatchers.Default) {
+        timerJob = viewModelScope.launch {
             while(true) {
-                try {
-                    val utcCal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
-                    val now = utcCal.timeInMillis
-                    
-                    var h = utcCal.get(Calendar.HOUR_OF_DAY) + 
-                            utcCal.get(Calendar.MINUTE) / 60.0 + 
-                            utcCal.get(Calendar.SECOND) / 3600.0 + 
-                            lastOffset
-                    
-                    while (h < 0) h += 24.0
-                    while (h >= 24) h -= 24.0
-                    val currentHourDec = h
+                val cal = Calendar.getInstance()
+                val currentHourDec = cal.get(Calendar.HOUR_OF_DAY) + cal.get(Calendar.MINUTE)/60.0 + cal.get(Calendar.SECOND)/3600.0
+                
+                // Current Prayer Countdown (How much time left for current prayer to end)
+                var diff = targetHour - currentHourDec
+                if (diff < 0) diff += 24.0
+                
+                val totalDuration = targetHour - startHour
+                val progress = ((currentHourDec - startHour) / totalDuration).coerceIn(0.0, 1.0).toFloat()
+                
+                val h = Math.floor(diff).toInt()
+                val m = Math.floor((diff - h)*60).toInt()
+                val s = Math.floor(((diff - h)*60 - m)*60).toInt()
+                
+                val timeStr = String.format("%02d:%02d:%02d", h, m, s).toBengali()
+                
+                // Sehri / Iftar Countdown
+                // Sehri ends at Fajr. Iftar starts at Maghrib.
+                val fajr = todayTimes.fajrHours
+                val maghrib = todayTimes.maghribHours
+                
+                var specialLabel = if (GlobalLanguage.isEnglish) "Sehri Remaining" else "সাহরির বাকি"
+                var targetHour = fajr
+                var startHour = maghrib - 24.0 // yesterday's maghrib as fallback
 
-                    val times = PrayerCalculator.calculatePrayerTimes(lastLat, lastLng, lastOffset, lastMadhab, utcCal)
-                    val fH = times.fajrHours
-                    val sH = times.sunriseHours
-                    val dH = times.dhuhrHours
-                    val aH = times.asrHours
-                    val mH = times.maghribHours
-                    val iH = times.ishaHours
-
-                    var cName = "..."
-                    var cNameBn = "..."
-                    var cStart = 0.0
-                    var cEnd = 0.0
-                    var nName = "..."
-                    var nNameBn = "..."
-                    val isEng = GlobalLanguage.isEnglish
-
-                    if (h >= fH && h < sH) {
-                        cName = "Fajr"; cNameBn = if(isEng) "Fajr" else "ফজর"; cStart = fH; cEnd = sH
-                        nName = "Dhuhr"; nNameBn = if(isEng) "Dhuhr" else "যোহর"
-                    } else if (h >= sH && h < dH) {
-                        cName = "Ishraq"; cNameBn = if(isEng) "Ishraq" else "ইশরাক"; cStart = sH; cEnd = dH
-                        nName = "Dhuhr"; nNameBn = if(isEng) "Dhuhr" else "যোহর"
-                    } else if (h >= dH && h < aH) {
-                        cName = "Dhuhr"; cNameBn = if(isEng) "Dhuhr" else "যোহর"; cStart = dH; cEnd = aH
-                        nName = "Asr"; nNameBn = if(isEng) "Asr" else "আসর"
-                    } else if (h >= aH && h < mH) {
-                        cName = "Asr"; cNameBn = if(isEng) "Asr" else "আসর"; cStart = aH; cEnd = mH
-                        nName = "Maghrib"; nNameBn = if(isEng) "Maghrib" else "মাগরিব"
-                    } else if (h >= mH && h < iH) {
-                        cName = "Maghrib"; cNameBn = if(isEng) "Maghrib" else "মাগরিব"; cStart = mH; cEnd = iH
-                        nName = "Isha"; nNameBn = if(isEng) "Isha" else "এশা"
-                    } else {
-                        cName = "Isha"; cNameBn = if(isEng) "Isha" else "এশা"
-                        nName = "Fajr"; nNameBn = if(isEng) "Fajr" else "ফজর"
-                        if (h >= iH) {
-                            cStart = iH
-                            val tom = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply { timeInMillis = now; add(Calendar.DAY_OF_YEAR, 1) }
-                            val tomT = PrayerCalculator.calculatePrayerTimes(lastLat, lastLng, lastOffset, lastMadhab, tom)
-                            cEnd = tomT.fajrHours + 24.0
-                        } else {
-                            val yes = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply { timeInMillis = now; add(Calendar.DAY_OF_YEAR, -1) }
-                            val yesT = PrayerCalculator.calculatePrayerTimes(lastLat, lastLng, lastOffset, lastMadhab, yes)
-                            cStart = yesT.ishaHours - 24.0
-                            cEnd = fH
-                        }
-                    }
-
-                    val rotating = if (cName == "Ishraq") (if (isEng) listOf("Ishraq", "Chasht", "Duha") else listOf("ইশরাক", "চাশত", "দোহা")) else emptyList()
-                    val mainDiff = cEnd - h
-                    val nextPrayerRemainingVal = formatDiff(mainDiff, isEng)
-                    val progress = if (cEnd - cStart <= 0.0) 0f else ((h - cStart) / (cEnd - cStart)).coerceIn(0.0, 1.0).toFloat()
-
-                    var sLabel = ""; var sDiff = 0.0; var sTot = 1.0; var sStart = 0.0; var isIftar = false
-                    if (h >= fH && h < mH) {
-                        sLabel = if (isEng) "Iftar Remaining" else "ইফতারের বাকি"
-                        sDiff = mH - h; sStart = fH; sTot = mH - fH; isIftar = true
-                    } else {
-                        sLabel = if (isEng) "Sehri Remaining" else "সাহরির বাকি"
-                        isIftar = false
-                        if (h >= mH) {
-                            val tom = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply { timeInMillis = now; add(Calendar.DAY_OF_YEAR, 1) }
-                            val tomT = PrayerCalculator.calculatePrayerTimes(lastLat, lastLng, lastOffset, lastMadhab, tom)
-                            sDiff = (tomT.fajrHours + 24.0) - h; sStart = mH; sTot = (tomT.fajrHours + 24.0) - mH
-                        } else {
-                            sDiff = fH - h
-                            val yes = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply { timeInMillis = now; add(Calendar.DAY_OF_YEAR, -1) }
-                            val yesT = PrayerCalculator.calculatePrayerTimes(lastLat, lastLng, lastOffset, lastMadhab, yes)
-                            sStart = yesT.maghribHours - 24.0; sTot = fH - sStart
-                        }
-                    }
-                    val sTimeStr = formatDiff(sDiff, isEng)
-                    val sProgress = if (sTot <= 0.0) 0f else ((h - sStart) / sTot).coerceIn(0.0, 1.0).toFloat()
-
-                    val fC = (if (h >= fH && h < sH) (if(isEng) "Ends: " else "শেষ: ") + formatDiff(sH - h, isEng) else (if(isEng) "Starts: " else "শুরু: ") + formatDiff(fH - h, isEng))
-                    val dC = (if (h >= dH && h < aH) (if(isEng) "Ends: " else "শেষ: ") + formatDiff(aH - h, isEng) else (if(isEng) "Starts: " else "শুরু: ") + formatDiff(dH - h, isEng))
-                    val aC = (if (h >= aH && h < mH) (if(isEng) "Ends: " else "শেষ: ") + formatDiff(mH - h, isEng) else (if(isEng) "Starts: " else "শুরু: ") + formatDiff(aH - h, isEng))
-                    val mC = (if (h >= mH && h < iH) (if(isEng) "Ends: " else "শেষ: ") + formatDiff(iH - h, isEng) else (if(isEng) "Starts: " else "শুরু: ") + formatDiff(mH - h, isEng))
-                    val iC = if (h >= iH || h < fH) {
-                        val tF = if (h >= iH) fH + 24.0 else fH
-                        (if(isEng) "Ends: " else "শেষ: ") + formatDiff(tF - h, isEng)
-                    } else (if(isEng) "Starts: " else "শুরু: ") + formatDiff(iH - h, isEng)
-
-                    val sehriC = formatDiff(if (h < fH) fH - h else (fH + 24.0) - h, isEng)
-                    val iftarC = formatDiff(if (h < mH) mH - h else (mH + 24.0) - h, isEng)
-                    val sunriseC = formatDiff(if (h < sH) sH - h else (sH + 24.0) - h, isEng)
-                    val sunsetC = formatDiff(if (h < mH) mH - h else (mH + 24.0) - h, isEng)
-
-                    val fsS = sH; val fsE = sH + 15.0/60.0; val fsA = h >= fsS && h < fsE
-                    val fsC = (if(fsA) (if(isEng) "Ends in " else "শেষ হতে ") + formatDiff(fsE - h, isEng) else (if(isEng) "Starts in " else "শুরু হতে ") + formatDiff(fsS - h, isEng))
-                    val fnS = dH - 15.0/60.0; val fnE = dH; val fnA = h >= fnS && h < fnE
-                    val fnC = (if(fnA) (if(isEng) "Ends in " else "শেষ হতে ") + formatDiff(fnE - h, isEng) else (if(isEng) "Starts in " else "শুরু হতে ") + formatDiff(fnS - h, isEng))
-                    val fsnS = mH - 15.0/60.0; val fsnE = mH; val fsnA = h >= fsnS && h < fsnE
-                    val fsnC = (if(fsnA) (if(isEng) "Ends in " else "শেষ হতে ") + formatDiff(fsnE - h, isEng) else (if(isEng) "Starts in " else "শুরু হতে ") + formatDiff(fsnS - h, isEng))
-
-                    withContext(Dispatchers.Main) {
-                        _state.update { it.copy(
-                            prayerTimes = times, currentHourDecimal = h,
-                            currentPrayerName = cName, currentPrayerNameBen = cNameBn,
-                            nextPrayerName = nName, nextPrayerNameBen = nNameBn,
-                            rotatingNames = rotating, nextPrayerRemaining = nextPrayerRemainingVal,
-                            timerProgress = progress, specialCountdownLabel = sLabel,
-                            specialCountdownTime = sTimeStr, specialCountdownProgress = sProgress,
-                            fajrCountdown = fC, dhuhrCountdown = dC, asrCountdown = aC, maghribCountdown = mC, ishaCountdown = iC,
-                            sehriCountdown = sehriC, iftarCountdown = iftarC, sunriseCountdown = sunriseC, sunsetCountdown = sunsetC,
-                            forbiddenSunriseCountdown = fsC, forbiddenNoonCountdown = fnC, forbiddenSunsetCountdown = fsnC,
-                            isIftarCountdown = isIftar
-                        ) }
-                    }
-                } catch (e: Exception) {
-                    android.util.Log.e("PrayerViewModel", "Timer error", e)
+                if (currentHourDec > fajr && currentHourDec < maghrib) {
+                    // It's daytime, count down to Iftar
+                    specialLabel = if (GlobalLanguage.isEnglish) "Iftar Remaining" else "ইফতারের বাকি"
+                    targetHour = maghrib
+                    startHour = fajr
+                } else {
+                    // It's nighttime, count down to Sehri
+                    specialLabel = if (GlobalLanguage.isEnglish) "Sehri Remaining" else "সাহরির বাকি"
+                    targetHour = if (currentHourDec > maghrib) fajr + 24.0 else fajr
+                    startHour = if (currentHourDec > maghrib) maghrib else maghrib - 24.0
                 }
+
+                var specDiff = targetHour - currentHourDec
+                val specTotal = targetHour - startHour
+                val specProgress = ((currentHourDec - startHour) / specTotal).coerceIn(0.0, 1.0).toFloat()
+                
+                val sh = Math.floor(specDiff).toInt()
+                val sm = Math.floor((specDiff - sh)*60).toInt()
+                val ss = Math.floor(((specDiff - sh)*60 - sm)*60).toInt()
+                val specTimeStr = String.format("%02d:%02d:%02d", sh, sm, ss).toBengali()
+
+                _state.update { it.copy(
+                    nextPrayerRemaining = timeStr,
+                    timerProgress = progress,
+                    specialCountdownLabel = specialLabel,
+                    specialCountdownTime = specTimeStr,
+                    specialCountdownProgress = specProgress
+                ) }
+                
                 delay(1000)
             }
         }
