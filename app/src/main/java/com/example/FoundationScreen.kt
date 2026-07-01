@@ -180,7 +180,7 @@ fun FoundationScreen(onBack: () -> Unit) {
                         .padding(24.dp)
                 ) {
                     Text(
-                        text = if (isEnglish) "HALAL CIRCLE FOUNDATION" else "হালাল সার্কেল ফাউন্ডেশন",
+                        text = if (isEnglish) "MUSLIM COMPANION FOUNDATION" else "মুসলিম কম্পানিয়ন ফাউন্ডেশন",
                         color = Color(0xFFF59E0B), // Warm Amber/Gold
                         fontSize = 13.sp,
                         fontWeight = FontWeight.ExtraBold,
@@ -360,7 +360,7 @@ fun FoundationScreen(onBack: () -> Unit) {
                     description = if (isEnglish) {
                         "Expanding the services of Halal Circle Foundation beyond Bangladesh to reach the needy worldwide."
                     } else {
-                        "হালাল সার্কেল ফাউন্ডেশনের সেবা কার্যক্রমকে দেশের গন্ডি পেরিয়ে বৈশ্বিক স্তরে ছড়িয়ে দেওয়া।"
+                        "মুসলিম কম্পানিয়ন ফাউন্ডেশনের সেবা কার্যক্রমকে দেশের গন্ডি পেরিয়ে বৈশ্বিক স্তরে ছড়িয়ে দেওয়া।"
                     },
                     imageRes = R.drawable.ic_launcher_foreground
                 )
@@ -481,7 +481,7 @@ fun FoundationScreen(onBack: () -> Unit) {
                         text = if (isEnglish) {
                             "Join hands with Halal Circle Foundation to support orphans, flood victims, and helpless families."
                         } else {
-                            "হালাল সার্কেল ফাউন্ডেশনের সাথে যুক্ত হয়ে এতিম শিশু, বন্যার্ত এবং অসহায় মানুষদের সহযোগিতায় পাশে দাঁড়ান।"
+                            "মুসলিম কম্পানিয়ন ফাউন্ডেশনের সাথে যুক্ত হয়ে এতিম শিশু, বন্যার্ত এবং অসহায় মানুষদের সহযোগিতায় পাশে দাঁড়ান।"
                         },
                         fontSize = 13.sp,
                         color = TextGray,

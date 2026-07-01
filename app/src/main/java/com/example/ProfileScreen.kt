@@ -432,7 +432,7 @@ fun ProfileScreen(
                         } else {
                             // When not logged in: show the application name "Halal Circle"
                             Text(
-                                text = if (isEn) "Muslim Companion" else "মুসলিম কম্প্যানিয়ন",
+                                text = if (isEn) "Halal Circle" else "হালাল সার্কেল",
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.Bold,
                                 textAlign = TextAlign.Center,

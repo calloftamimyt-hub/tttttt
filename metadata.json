@@ -1,5 +1,5 @@
 {
-  "name": "Muslim Companion",
+  "name": "Halal Circle",
   "description": "A comprehensive Islamic assistant with prayer times, Qibla compass, Quran, and more.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

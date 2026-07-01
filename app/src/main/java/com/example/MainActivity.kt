@@ -64,6 +64,38 @@ import android.content.Context
 import kotlinx.coroutines.flow.*
 
 
+private fun getBitmapFromUri(context: android.content.Context, uri: android.net.Uri): android.graphics.Bitmap? {
+    return try {
+        context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            val options = android.graphics.BitmapFactory.Options().apply {
+                inJustDecodeBounds = true
+            }
+            android.graphics.BitmapFactory.decodeStream(inputStream, null, options)
+            
+            // Calculate inSampleSize
+            var inSampleSize = 1
+            val reqWidth = 200
+            val reqHeight = 200
+            if (options.outHeight > reqHeight || options.outWidth > reqWidth) {
+                val halfHeight: Int = options.outHeight / 2
+                val halfWidth: Int = options.outWidth / 2
+                while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+                    inSampleSize *= 2
+                }
+            }
+            
+            context.contentResolver.openInputStream(uri)?.use { inputStream2 ->
+                val finalOptions = android.graphics.BitmapFactory.Options().apply {
+                    this.inSampleSize = inSampleSize
+                }
+                android.graphics.BitmapFactory.decodeStream(inputStream2, null, finalOptions)
+            }
+        }
+    } catch (e: Throwable) {
+        null
+    }
+}
+
 class MainActivity : ComponentActivity() {
     var interceptedPlatformName by mutableStateOf<String?>(null)
 
@@ -81,16 +113,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun getBitmapFromUri(context: android.content.Context, uri: android.net.Uri): android.graphics.Bitmap? {
-        return try {
-            val inputStream = context.contentResolver.openInputStream(uri)
-            android.graphics.BitmapFactory.decodeStream(inputStream)
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    @OptIn(ExperimentalPermissionsApi::class)
+    @OptIn(com.google.accompanist.permissions.ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         handleIntent(intent)
@@ -233,7 +256,7 @@ class MainActivity : ComponentActivity() {
                                                             body = notifBody,
                                                             timestamp = System.currentTimeMillis(),
                                                             type = "GENERAL",
-                                                            actorName = data["author"] as? String ?: "Muslim Companion",
+                                                            actorName = data["author"] as? String ?: "Halal Circle",
                                                             remoteId = "alert_$docId"
                                                         )
                                                         notificationDao.insertNotification(entity)
@@ -242,7 +265,11 @@ class MainActivity : ComponentActivity() {
                                                         val ctx = context
                                                         val brandingPrefs = ctx.getSharedPreferences("app_branding", android.content.Context.MODE_PRIVATE)
                                                         val customLogoUriStr = brandingPrefs.getString("app_logo_uri", null)
-                                                        val customLogoBitmap = customLogoUriStr?.let { Uri.parse(it) }?.let { getBitmapFromUri(ctx, it) }
+                                                        val customLogoBitmap = try {
+                                                            customLogoUriStr?.let { Uri.parse(it) }?.let { getBitmapFromUri(ctx, it) }
+                                                        } catch (e: Throwable) {
+                                                            null
+                                                        }
 
                                                         val notifManager = ctx.getSystemService(android.content.Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
                                                         val builder = androidx.core.app.NotificationCompat.Builder(ctx, "halal_circle_notifs")
@@ -332,7 +359,11 @@ class MainActivity : ComponentActivity() {
                                                                 val ctx = context
                                                                 val brandingPrefs = ctx.getSharedPreferences("app_branding", android.content.Context.MODE_PRIVATE)
                                                                 val customLogoUriStr = brandingPrefs.getString("app_logo_uri", null)
-                                                                val customLogoBitmap = customLogoUriStr?.let { Uri.parse(it) }?.let { getBitmapFromUri(ctx, it) }
+                                                                val customLogoBitmap = try {
+                                                                    customLogoUriStr?.let { Uri.parse(it) }?.let { getBitmapFromUri(ctx, it) }
+                                                                } catch (e: Throwable) {
+                                                                    null
+                                                                }
 
                                                                 val notifManager = ctx.getSystemService(android.content.Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
                                                                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
@@ -1063,7 +1094,7 @@ fun HomeScreen(
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "Muslim Companion",
+                        text = "Halal Circle",
                         fontWeight = FontWeight.ExtraBold,
                         fontSize = 20.sp,
                         color = PrimaryGreen
@@ -2093,10 +2124,9 @@ fun SplashScreen(onFinished: () -> Unit) {
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.offset(y = (-30).dp)
         ) {
-            Icon(
+            Image(
                 painter = androidx.compose.ui.res.painterResource(id = R.drawable.ic_launcher_foreground),
                 contentDescription = "App Logo",
-                tint = com.example.ui.theme.PrimaryGreen,
                 modifier = Modifier
                     .size(100.dp)
                     .scale(scale.value)
