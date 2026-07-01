@@ -1,20 +1,23 @@
 package com.example
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,12 +31,33 @@ import java.util.Locale
 @Composable
 fun SalatTimesCard(state: ViewState) {
     state.prayerTimes?.let { times ->
+        val context = LocalContext.current
         val isEng = GlobalLanguage.isEnglish
         val primaryGreen = Color(0xFF10B982)
         val lightGreen = Color(0xFFECFDF5)
 
+        val trackerPrefs = remember { context.getSharedPreferences("daily_tracker_prefs", Context.MODE_PRIVATE) }
+        val dateStr = remember { SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()) }
+        val checkedState = remember { mutableStateMapOf<String, Boolean>() }
+
+        LaunchedEffect(dateStr) {
+            listOf("Fajr", "Dhuhr", "Asr", "Maghrib", "Isha").forEach { key ->
+                checkedState[key] = trackerPrefs.getBoolean("${dateStr}_$key", false)
+            }
+        }
+
         // Formatting Helpers
-        val formatTime = { h: Double ->
+        val formatTimeNoAmPm = { h: Double ->
+            val totalSeconds = (h * 3600).toInt()
+            val normalizedSeconds = ((totalSeconds % (24 * 3600)) + 24 * 3600) % (24 * 3600)
+            val hour = normalizedSeconds / 3600
+            val min = (normalizedSeconds / 60) % 60
+            val displayHour = if (hour > 12) hour - 12 else if (hour == 0) 12 else hour
+            val timeStr = String.format("%02d:%02d", displayHour, min)
+            if (isEng) timeStr else timeStr.toBengali()
+        }
+
+        val formatTimeWithAmPm = { h: Double ->
             val totalSeconds = (h * 3600).toInt()
             val normalizedSeconds = ((totalSeconds % (24 * 3600)) + 24 * 3600) % (24 * 3600)
             val hour = normalizedSeconds / 3600
@@ -44,19 +68,49 @@ fun SalatTimesCard(state: ViewState) {
             if (isEng) timeStr else timeStr.toBengali()
         }
 
-        // Current prayer logic
+        // 5 Prayers items with respective range bounds
         val prayers = listOf(
-            PrayerItem(if (isEng) "Fajr" else "ফজর", times.fajrHours, Icons.Outlined.Mosque, state.fajrCountdown, "Fajr"),
-            PrayerItem(if (isEng) "Dhuhr" else "যোহর", times.dhuhrHours, Icons.Outlined.WbSunny, state.dhuhrCountdown, "Dhuhr"),
-            PrayerItem(if (isEng) "Asr" else "আসর", times.asrHours, Icons.Outlined.Cloud, state.asrCountdown, "Asr"),
-            PrayerItem(if (isEng) "Maghrib" else "মাগরিব", times.maghribHours, Icons.Outlined.Mosque, state.maghribCountdown, "Maghrib"),
-            PrayerItem(if (isEng) "Isha" else "এশা", times.ishaHours, Icons.Outlined.ModeNight, state.ishaCountdown, "Isha")
+            PrayerRangeItem(
+                name = if (isEng) "Fajr" else "ফজর",
+                startTimeHours = times.fajrHours,
+                endTimeHours = times.sunriseHours,
+                icon = Icons.Outlined.WbTwilight,
+                internalName = "Fajr"
+            ),
+            PrayerRangeItem(
+                name = if (isEng) "Dhuhr" else "যুহর",
+                startTimeHours = times.dhuhrHours,
+                endTimeHours = times.asrHours,
+                icon = Icons.Outlined.WbSunny,
+                internalName = "Dhuhr"
+            ),
+            PrayerRangeItem(
+                name = if (isEng) "Asr" else "আসর",
+                startTimeHours = times.asrHours,
+                endTimeHours = times.maghribHours,
+                icon = Icons.Outlined.WbSunny,
+                internalName = "Asr"
+            ),
+            PrayerRangeItem(
+                name = if (isEng) "Maghrib" else "মাগরিব",
+                startTimeHours = times.maghribHours,
+                endTimeHours = times.ishaHours,
+                icon = Icons.Outlined.Cloud,
+                internalName = "Maghrib"
+            ),
+            PrayerRangeItem(
+                name = if (isEng) "Isha" else "ইশা",
+                startTimeHours = times.ishaHours,
+                endTimeHours = times.fajrHours, // Approximation to simplify range bound
+                icon = Icons.Outlined.ModeNight,
+                internalName = "Isha"
+            )
         )
 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 2.dp), // Minimal gap between cards for FB Feed style
+                .padding(vertical = 2.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             // FARZ PRAYERS CARD
@@ -69,129 +123,110 @@ fun SalatTimesCard(state: ViewState) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                        .padding(horizontal = 16.dp, vertical = 14.dp)
                 ) {
-                    // Header
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = if (isEng) "Farz Prayers" else "ফরজ নামাজ",
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 15.sp,
-                            color = Color(0xFF1E293B)
-                        )
-                        
-                        Text(
-                            text = if (isEng) "Today" else "আজ",
-                            color = primaryGreen,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier
-                                .background(lightGreen, RoundedCornerShape(8.dp))
-                                .padding(horizontal = 10.dp, vertical = 4.dp)
-                        )
-                    }
-                    
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    // Vertical list of 5 Prayers (Clean & Premium Full Width Layout)
+                    // Vertical list of 5 Prayers (Clean, slim & beautifully compact layout)
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         prayers.forEach { prayer ->
                             val isActive = prayer.internalName == state.currentPrayerName
-                            val rowBg = if (isActive) Color(0xFFECFDF5) else Color.Transparent
-                            val rowModifier = if (isActive) {
-                                Modifier
-                                    .fillMaxWidth()
-                                    .border(width = 1.dp, color = primaryGreen.copy(alpha = 0.4f), shape = RoundedCornerShape(10.dp))
-                            } else {
-                                Modifier.fillMaxWidth()
-                            }
+                            val isChecked = checkedState[prayer.internalName] ?: false
                             
-                            Card(
-                                shape = RoundedCornerShape(10.dp),
-                                colors = CardDefaults.cardColors(containerColor = rowBg),
-                                modifier = rowModifier
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 12.dp, vertical = 10.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    // Left: Icon + Name + Countdown
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(32.dp)
-                                                .background(
-                                                    if (isActive) primaryGreen else Color(0xFFF1F5F9),
-                                                    CircleShape
-                                                ),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Icon(
-                                                imageVector = prayer.icon,
-                                                contentDescription = null,
-                                                tint = if (isActive) Color.White else Color(0xFF64748B),
-                                                modifier = Modifier.size(16.dp)
-                                            )
-                                        }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable {
+                                        val newValue = !isChecked
+                                        checkedState[prayer.internalName] = newValue
+                                        trackerPrefs.edit().putBoolean("${dateStr}_${prayer.internalName}", newValue).apply()
                                         
-                                        Column {
-                                            Text(
-                                                text = prayer.name,
-                                                fontSize = 14.sp,
-                                                fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.Bold,
-                                                color = if (isActive) primaryGreen else Color(0xFF1E293B)
-                                            )
-                                            
-                                            if (prayer.countdown.isNotEmpty()) {
-                                                Text(
-                                                    text = prayer.countdown,
-                                                    fontSize = 11.sp,
-                                                    fontWeight = FontWeight.Medium,
-                                                    color = if (isActive) primaryGreen else Color(0xFF64748B)
-                                                )
+                                        val toastMsg = if (isEng) {
+                                            if (newValue) "${prayer.internalName} Marked as Prayed!" else "${prayer.internalName} Unmarked!"
+                                        } else {
+                                            val benName = when(prayer.internalName) {
+                                                "Fajr" -> "ফজর"
+                                                "Dhuhr" -> "যুহর"
+                                                "Asr" -> "আসর"
+                                                "Maghrib" -> "মাগরিব"
+                                                else -> "ইশা"
                                             }
+                                            if (newValue) "$benName আদায় করা হয়েছে!" else "$benName আনমার্ক করা হয়েছে!"
                                         }
+                                        android.widget.Toast.makeText(context, toastMsg, android.widget.Toast.LENGTH_SHORT).show()
                                     }
+                                    .background(if (isActive) lightGreen.copy(alpha = 0.5f) else Color.Transparent)
+                                    .padding(horizontal = 8.dp, vertical = 10.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // Left Side: Icon + Prayer Name
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = prayer.icon,
+                                        contentDescription = null,
+                                        tint = if (isActive) primaryGreen else Color(0xFF475569),
+                                        modifier = Modifier.size(18.dp)
+                                    )
                                     
-                                    // Right: Time + Active Pill Badge
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        if (isActive) {
-                                            Text(
-                                                text = if (isEng) "Active" else "চলতি",
-                                                color = Color.White,
-                                                fontSize = 10.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                modifier = Modifier
-                                                    .background(primaryGreen, RoundedCornerShape(4.dp))
-                                                    .padding(horizontal = 6.dp, vertical = 2.dp)
-                                            )
-                                        }
-                                        
-                                        Text(
-                                            text = formatTime(prayer.timeHours),
-                                            fontSize = 14.sp,
-                                            fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.SemiBold,
-                                            color = if (isActive) primaryGreen else Color(0xFF1E293B)
-                                        )
-                                    }
+                                    Text(
+                                        text = prayer.name,
+                                        fontSize = 14.sp,
+                                        fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.Bold,
+                                        color = if (isActive) primaryGreen else Color(0xFF1E293B)
+                                    )
+                                }
+                                
+                                // Middle Side: Start Time - End Time range (e.g., ০৩:৪৭ - ০৫:১৩)
+                                Text(
+                                    text = "${formatTimeNoAmPm(prayer.startTimeHours)} - ${formatTimeNoAmPm(prayer.endTimeHours)}",
+                                    fontSize = 14.sp,
+                                    fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.SemiBold,
+                                    color = if (isActive) primaryGreen else Color(0xFF334155),
+                                    modifier = Modifier.padding(end = 16.dp)
+                                )
+                                
+                                // Right Side: Simple Radio/Checkbox Circle
+                                Box(
+                                    modifier = Modifier.size(24.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = if (isChecked) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
+                                        contentDescription = null,
+                                        tint = if (isChecked) primaryGreen else Color(0xFFCBD5E1),
+                                        modifier = Modifier.size(20.dp)
+                                    )
                                 }
                             }
                         }
+                    }
+                    
+                    // Aligned bottom Makruh period with orange dot
+                    val makruhStart = times.dhuhrHours - 15.0 / 60.0
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 10.dp, end = 8.dp),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .background(Color(0xFFEA580C), CircleShape) // Orange dot
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = if (isEng) "Makruh: ${formatTimeNoAmPm(makruhStart)}" else "মাকরুহ: ${formatTimeNoAmPm(makruhStart)}",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF475569)
+                        )
                     }
                 }
             }
@@ -217,11 +252,11 @@ fun SalatTimesCard(state: ViewState) {
                     Spacer(modifier = Modifier.height(12.dp))
                     
                     val nafilPrayers = listOf(
-                        Triple(if (isEng) "Tahajjud" else "তাহাজ্জুদ", formatTime(times.fajrHours - 1.2), Icons.Outlined.ModeNight),
-                        Triple(if (isEng) "Ishraq" else "ইশরাক", formatTime(times.sunriseHours + 0.3), Icons.Outlined.WbSunny),
-                        Triple(if (isEng) "Chasht" else "চাশত", formatTime(times.sunriseHours + 1.5), Icons.Outlined.WbSunny),
-                        Triple(if (isEng) "Duha" else "দুহা", formatTime(times.sunriseHours + 2.5), Icons.Outlined.WbSunny),
-                        Triple(if (isEng) "Awwabin" else "আওয়াবিন", formatTime(times.maghribHours + 0.3), Icons.Outlined.WbTwilight)
+                        Triple(if (isEng) "Tahajjud" else "তাহাজ্জুদ", formatTimeWithAmPm(times.fajrHours - 1.2), Icons.Outlined.ModeNight),
+                        Triple(if (isEng) "Ishraq" else "ইশরাক", formatTimeWithAmPm(times.sunriseHours + 0.3), Icons.Outlined.WbSunny),
+                        Triple(if (isEng) "Chasht" else "চাশত", formatTimeWithAmPm(times.sunriseHours + 1.5), Icons.Outlined.WbSunny),
+                        Triple(if (isEng) "Duha" else "দুহা", formatTimeWithAmPm(times.sunriseHours + 2.5), Icons.Outlined.WbSunny),
+                        Triple(if (isEng) "Awwabin" else "আওয়াবিন", formatTimeWithAmPm(times.maghribHours + 0.3), Icons.Outlined.WbTwilight)
                     )
                     
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -262,12 +297,13 @@ fun SalatTimesCard(state: ViewState) {
     }
 }
 
-data class PrayerItem(
+data class PrayerRangeItem(
     val name: String,
-    val timeHours: Double,
+    val startTimeHours: Double,
+    val endTimeHours: Double,
     val icon: ImageVector,
-    val countdown: String,
     val internalName: String
 )
+
 
 

@@ -53,6 +53,23 @@ fun TrackerScreen(onBack: () -> Unit = {}) {
     var parents by remember { mutableStateOf(false) }
     var tasbihCount by remember { mutableIntStateOf(0) }
 
+    val trackerPrefs = remember { context.getSharedPreferences("daily_tracker_prefs", android.content.Context.MODE_PRIVATE) }
+    val dateKey = remember(selectedDate) { dateFormatter.format(selectedDate.time) }
+
+    LaunchedEffect(dateKey) {
+        fajr = trackerPrefs.getBoolean("${dateKey}_Fajr", false)
+        dhuhr = trackerPrefs.getBoolean("${dateKey}_Dhuhr", false)
+        asr = trackerPrefs.getBoolean("${dateKey}_Asr", false)
+        maghrib = trackerPrefs.getBoolean("${dateKey}_Maghrib", false)
+        isha = trackerPrefs.getBoolean("${dateKey}_Isha", false)
+        quran = trackerPrefs.getBoolean("${dateKey}_quran", false)
+        charity = trackerPrefs.getBoolean("${dateKey}_charity", false)
+        reading = trackerPrefs.getBoolean("${dateKey}_reading", false)
+        istighfar = trackerPrefs.getBoolean("${dateKey}_istighfar", false)
+        parents = trackerPrefs.getBoolean("${dateKey}_parents", false)
+        tasbihCount = trackerPrefs.getInt("${dateKey}_tasbihCount", 0)
+    }
+
     val scrollState = rememberScrollState()
 
     Scaffold(
@@ -205,6 +222,19 @@ fun TrackerScreen(onBack: () -> Unit = {}) {
             // Save Button
             Button(
                 onClick = {
+                    trackerPrefs.edit()
+                        .putBoolean("${dateKey}_Fajr", fajr)
+                        .putBoolean("${dateKey}_Dhuhr", dhuhr)
+                        .putBoolean("${dateKey}_Asr", asr)
+                        .putBoolean("${dateKey}_Maghrib", maghrib)
+                        .putBoolean("${dateKey}_Isha", isha)
+                        .putBoolean("${dateKey}_quran", quran)
+                        .putBoolean("${dateKey}_charity", charity)
+                        .putBoolean("${dateKey}_reading", reading)
+                        .putBoolean("${dateKey}_istighfar", istighfar)
+                        .putBoolean("${dateKey}_parents", parents)
+                        .putInt("${dateKey}_tasbihCount", tasbihCount)
+                        .apply()
                     android.widget.Toast.makeText(context, if (isEnglish) "Tracker Saved Successfully!" else "আমল ট্র্যাকার সেভ করা হয়েছে!", android.widget.Toast.LENGTH_SHORT).show()
                 },
                 modifier = Modifier
