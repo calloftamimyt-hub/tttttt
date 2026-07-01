@@ -987,78 +987,57 @@ fun UnifiedHeroCard(
                 }
             }
             
-            // Location Badge, Sunrise, and Sunset horizontally at the bottom
+            // Labels for Sunrise and Sunset at bottom (Sunrise on left, Sunset on right)
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 8.dp),
+                    .fillMaxSize()
+                    .padding(bottom = 24.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Bottom
             ) {
-                // Left: Location Selector Pill
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier = Modifier
-                        .background(PrimaryGreen.copy(alpha = 0.08f), RoundedCornerShape(12.dp))
-                        .border(1.dp, PrimaryGreen.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
-                        .clickable { onNavigateToLocation() }
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.LocationOn,
-                        contentDescription = "Location",
-                        tint = PrimaryGreen,
-                        modifier = Modifier.size(12.dp)
-                    )
-                    Text(
-                        text = state.locationName,
-                        fontWeight = FontWeight.SemiBold,
-                        color = PrimaryGreen,
-                        fontSize = 11.sp
-                    )
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Expand Location",
-                        tint = PrimaryGreen,
-                        modifier = Modifier.size(12.dp)
-                    )
-                }
-
-                // Middle: Sunrise with Icon
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(start = 12.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.WbTwilight, 
                         contentDescription = "Sunrise", 
                         tint = Color(0xFFF59E0B), 
-                        modifier = Modifier.size(15.dp)
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = if (GlobalLanguage.isEnglish) "Sunrise" else "সূর্যোদয়",
+                        color = TextDark,
+                        fontSize = 10.sp
                     )
                     Text(
-                        text = if (GlobalLanguage.isEnglish) "Sunrise: ${prayerTimes.sunrise}" else "সূর্যোদয়: ${prayerTimes.sunrise.toBengali()}",
-                        color = TextDark,
+                        text = prayerTimes.sunrise.toBengali(),
+                        color = PrimaryGreen,
                         fontWeight = FontWeight.Bold,
                         fontSize = 11.sp
                     )
                 }
-
-                // Right: Sunset with Icon
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(end = 12.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.WbSunny, 
                         contentDescription = "Sunset", 
                         tint = Color(0xFFEA580C), 
-                        modifier = Modifier.size(15.dp)
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = if (GlobalLanguage.isEnglish) "Sunset" else "সূর্যাস্ত",
+                        color = TextDark,
+                        fontSize = 10.sp
                     )
                     Text(
-                        text = if (GlobalLanguage.isEnglish) "Sunset: ${prayerTimes.maghrib}" else "সূর্যাস্ত: ${prayerTimes.maghrib.toBengali()}",
-                        color = TextDark,
+                        text = prayerTimes.maghrib.toBengali(),
+                        color = PrimaryGreen,
                         fontWeight = FontWeight.Bold,
                         fontSize = 11.sp
                     )
@@ -1139,6 +1118,41 @@ fun HomeScreen(
                         fontSize = 20.sp,
                         color = PrimaryGreen
                     )
+                }
+                
+                // Location Badge: styled beautifully with a light green background/border
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 4.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier
+                            .background(PrimaryGreen.copy(alpha = 0.08f), RoundedCornerShape(12.dp))
+                            .border(1.dp, PrimaryGreen.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                            .clickable { onNavigateToLocation() }
+                            .padding(horizontal = 10.dp, vertical = 5.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.LocationOn,
+                            contentDescription = "Location",
+                            tint = PrimaryGreen,
+                            modifier = Modifier.size(13.dp)
+                        )
+                        Text(
+                            text = state.locationName,
+                            fontWeight = FontWeight.SemiBold,
+                            color = PrimaryGreen,
+                            fontSize = 11.5.sp
+                        )
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = "Expand Location",
+                            tint = PrimaryGreen,
+                            modifier = Modifier.size(13.dp)
+                        )
+                    }
                 }
             }
             

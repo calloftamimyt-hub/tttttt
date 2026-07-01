@@ -84,7 +84,7 @@ fun RamadanScreen(
                         fontSize = 24.sp
                     )
                     Text(
-                        text = state.nextPrayerRemaining,
+                        text = state.specialCountdownTime,
                         color = PrimaryGreen,
                         fontWeight = FontWeight.Bold,
                         fontSize = 32.sp
