@@ -47,6 +47,21 @@ fun SalatTimesCard(state: ViewState) {
             }
         }
 
+        DisposableEffect(trackerPrefs, dateStr) {
+            val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                if (key != null && key.startsWith(dateStr)) {
+                    val prayerKey = key.substringAfter("${dateStr}_")
+                    if (prayerKey in listOf("Fajr", "Dhuhr", "Asr", "Maghrib", "Isha")) {
+                        checkedState[prayerKey] = trackerPrefs.getBoolean(key, false)
+                    }
+                }
+            }
+            trackerPrefs.registerOnSharedPreferenceChangeListener(listener)
+            onDispose {
+                trackerPrefs.unregisterOnSharedPreferenceChangeListener(listener)
+            }
+        }
+
         // Formatting Helpers
         val formatTimeNoAmPm = { h: Double ->
             val totalSeconds = (h * 3600).toInt()

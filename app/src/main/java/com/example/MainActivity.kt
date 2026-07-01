@@ -1418,6 +1418,11 @@ fun HomeScreen(
 
     Spacer(modifier = Modifier.height(4.dp))
 
+    // Interactive Daily Prayer Tracker Checklist
+    DailyPrayerTrackerCard(onNavigateToTracker = onNavigateToTracker)
+
+    Spacer(modifier = Modifier.height(4.dp))
+
     // Salat Times Section (Nafal & Farz)
     SalatTimesCard(state)
 
@@ -1981,7 +1986,8 @@ fun CategoryGrid(
             Triple("Islamic Name", Icons.Outlined.People, Color(0xFF3B82F6)),
             Triple("Salah Learning", Icons.Outlined.SelfImprovement, Color(0xFF14B8A6)),
             Triple("Durood Reminder", Icons.Outlined.Notifications, Color(0xFF8B5CF6)),
-            Triple("Widgets", Icons.Outlined.Widgets, Color(0xFF10B982))
+            Triple("Widgets", Icons.Outlined.Widgets, Color(0xFF10B982)),
+            Triple("Daily Tracker", Icons.Outlined.CheckCircle, Color(0xFF10B982))
         )
     } else {
         listOf(
@@ -1998,7 +2004,8 @@ fun CategoryGrid(
             Triple("ইসলামিক নাম", Icons.Outlined.People, Color(0xFF3B82F6)),
             Triple("নামাজ শিক্ষা", Icons.Outlined.SelfImprovement, Color(0xFF14B8A6)),
             Triple("দরুদ রিমাইন্ডার", Icons.Outlined.Notifications, Color(0xFF8B5CF6)),
-            Triple("উইজেট", Icons.Outlined.Widgets, Color(0xFF10B982))
+            Triple("উইজেট", Icons.Outlined.Widgets, Color(0xFF10B982)),
+            Triple("দৈনিক ট্র্যাকার", Icons.Outlined.CheckCircle, Color(0xFF10B982))
         )
     }
 
@@ -2045,6 +2052,8 @@ fun CategoryGrid(
                                         onNavigateToWidgets()
                                     } else if (item.first == "ইসলামিক নাম" || item.first == "Islamic Name") {
                                         onNavigateToIslamicNames()
+                                    } else if (item.first == "দৈনিক ট্র্যাকার" || item.first == "Daily Tracker") {
+                                        onNavigateToTracker()
                                     }
                                 }
                         ) {
