@@ -1272,10 +1272,11 @@ fun HomeScreen(
 
     // Forbidden Prayer Times Section (Full Width Feed Style)
     val isEng = GlobalLanguage.isEnglish
-    Surface(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 1.dp),
-        color = Color(0xFFFFF1F2), // Very soft red
-        shadowElevation = 0.5.dp
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp)
     ) {
         Column(
             modifier = Modifier
@@ -1288,146 +1289,83 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Info,
-                        contentDescription = null,
-                        tint = Color(0xFFEF4444),
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Text(
-                        text = if (isEng) "Forbidden Prayer Times" else "নিষিদ্ধ সালাতের সময়",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF991B1B)
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Outlined.DoNotDisturbAlt,
+                    contentDescription = null,
+                    tint = Color(0xFFEF4444),
+                    modifier = Modifier.size(18.dp)
+                )
+                Text(
+                    text = if (isEng) "Forbidden Prayer Times" else "নিষিদ্ধ সালাতের সময়",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color(0xFF1E293B)
+                )
+            }
 
-                Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-                // 3 Columns Row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    // Sunrise Column
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
+            // Vertical List (Clean & Premium)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                @Composable
+                fun ForbiddenTimeRow(title: String, time: String, countdown: String) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFFFFF1F2), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.WbTwilight,
-                            contentDescription = null,
-                            tint = Color(0xFFEF4444),
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = if (isEng) "Sunrise" else "সূর্যোদয়",
+                            text = title,
                             color = Color(0xFF1E293B),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium
                         )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "${state.forbiddenSunrise} - ${state.forbiddenSunriseEnd}",
-                            color = Color(0xFFEF4444),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        if (state.forbiddenSunriseCountdown.isNotEmpty()) {
-                            Spacer(modifier = Modifier.height(2.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            if (countdown.isNotEmpty()) {
+                                Text(
+                                    text = countdown,
+                                    color = Color.White,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier
+                                        .background(Color(0xFFEF4444), RoundedCornerShape(4.dp))
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
                             Text(
-                                text = state.forbiddenSunriseCountdown,
-                                color = Color.White,
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier
-                                    .background(Color(0xFFEF4444), RoundedCornerShape(4.dp))
-                                    .padding(horizontal = 4.dp, vertical = 2.dp)
-                            )
-                        }
-                    }
-
-                    // Noon Column
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.WbSunny,
-                            contentDescription = null,
-                            tint = Color(0xFFEF4444),
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = if (isEng) "Noon" else "মধ্যাহ্ন",
-                            color = Color(0xFF1E293B),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "${state.forbiddenNoon} - ${state.forbiddenNoonEnd}",
-                            color = Color(0xFFEF4444),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        if (state.forbiddenNoonCountdown.isNotEmpty()) {
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = state.forbiddenNoonCountdown,
-                                color = Color.White,
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier
-                                    .background(Color(0xFFEF4444), RoundedCornerShape(4.dp))
-                                    .padding(horizontal = 4.dp, vertical = 2.dp)
-                            )
-                        }
-                    }
-
-                    // Sunset Column
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.WbTwilight,
-                            contentDescription = null,
-                            tint = Color(0xFFEF4444),
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = if (isEng) "Sunset" else "সূর্যাস্ত",
-                            color = Color(0xFF1E293B),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "${state.forbiddenSunset} - ${state.forbiddenSunsetEnd}",
-                            color = Color(0xFFEF4444),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        if (state.forbiddenSunsetCountdown.isNotEmpty()) {
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = state.forbiddenSunsetCountdown,
-                                color = Color.White,
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier
-                                    .background(Color(0xFFEF4444), RoundedCornerShape(4.dp))
-                                    .padding(horizontal = 4.dp, vertical = 2.dp)
+                                text = time,
+                                color = Color(0xFFEF4444),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
                             )
                         }
                     }
                 }
+
+                ForbiddenTimeRow(
+                    title = if (isEng) "Sunrise" else "সূর্যোদয়",
+                    time = "${state.forbiddenSunrise} - ${state.forbiddenSunriseEnd}",
+                    countdown = state.forbiddenSunriseCountdown
+                )
+                ForbiddenTimeRow(
+                    title = if (isEng) "Noon" else "মধ্যাহ্ন",
+                    time = "${state.forbiddenNoon} - ${state.forbiddenNoonEnd}",
+                    countdown = state.forbiddenNoonCountdown
+                )
+                ForbiddenTimeRow(
+                    title = if (isEng) "Sunset" else "সূর্যাস্ত",
+                    time = "${state.forbiddenSunset} - ${state.forbiddenSunsetEnd}",
+                    countdown = state.forbiddenSunsetCountdown
+                )
             }
         }
+    }
     }
 }
 
