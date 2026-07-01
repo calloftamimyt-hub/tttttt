@@ -587,7 +587,12 @@ class MainActivity : ComponentActivity() {
                                             onNavigateToDua = { selectedTab = "dua" },
                                             onNavigateToHadith = { selectedTab = "hadith" },
                                             onNavigateToWidgets = { selectedTab = "widgets" },
-                                            onNavigateToIslamicNames = { selectedTab = "islamic_names" }
+                                            onNavigateToIslamicNames = { selectedTab = "islamic_names" },
+                                            onNavigateToDailySunnah = { selectedTab = "daily_sunnah" },
+                                            onNavigateToMorningEveningAzkar = { selectedTab = "morning_evening_azkar" },
+                                            onNavigateToIslamicQuiz = { selectedTab = "islamic_quiz" },
+                                            onNavigateToIslamicMasail = { selectedTab = "islamic_masail" },
+                                            onNavigateToSadaqahPlanner = { selectedTab = "sadaqah_planner" }
                                         )
                                     } else if (selectedTab == "tasbih") {
                                         TasbihScreen(onBack = { selectedTab = "tools" })
@@ -601,6 +606,16 @@ class MainActivity : ComponentActivity() {
                                         RamadanScreen(state = state, onBack = { selectedTab = "tools" })
                                     } else if (selectedTab == "allah_names") {
                                         NamesOfAllahScreen(onBack = { selectedTab = "tools" })
+                                    } else if (selectedTab == "daily_sunnah") {
+                                        DailySunnahScreen(onBack = { selectedTab = "tools" })
+                                    } else if (selectedTab == "morning_evening_azkar") {
+                                        AzkarScreen(onBack = { selectedTab = "tools" })
+                                    } else if (selectedTab == "islamic_quiz") {
+                                        IslamicQuizScreen(onBack = { selectedTab = "tools" })
+                                    } else if (selectedTab == "islamic_masail") {
+                                        MasailScreen(onBack = { selectedTab = "tools" })
+                                    } else if (selectedTab == "sadaqah_planner") {
+                                        SadaqahScreen(onBack = { selectedTab = "tools" })
                                     } else if (selectedTab == "profile") {
                                         ProfileScreen(
                                             onNavigateToTracker = { selectedTab = "tracker" },
@@ -2100,8 +2115,14 @@ fun ToolsScreen(
     onNavigateToDua: () -> Unit,
     onNavigateToHadith: () -> Unit,
     onNavigateToWidgets: () -> Unit,
-    onNavigateToIslamicNames: () -> Unit
+    onNavigateToIslamicNames: () -> Unit,
+    onNavigateToDailySunnah: () -> Unit,
+    onNavigateToMorningEveningAzkar: () -> Unit,
+    onNavigateToIslamicQuiz: () -> Unit,
+    onNavigateToIslamicMasail: () -> Unit,
+    onNavigateToSadaqahPlanner: () -> Unit
 ) {
+    val isEng = GlobalLanguage.isEnglish
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
     ) {
@@ -2113,32 +2134,272 @@ fun ToolsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                if (GlobalLanguage.isEnglish) "All Tools" else "সকল ক্যাটাগরি", 
+                if (isEng) "All Tools" else "সকল ক্যাটাগরি", 
                 fontWeight = FontWeight.Bold, 
                 color = TextDark, 
                 fontSize = 20.sp
             )
         }
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
-        // Categories Grid
-        CategoryGrid(
-            onNavigateToTracker = onNavigateToTracker,
-            onNavigateToTasbih = onNavigateToTasbih,
-            onNavigateToComingSoon = onNavigateToComingSoon,
-            onNavigateToQuran = onNavigateToQuran,
-            onNavigateToZakat = onNavigateToZakat,
-            onNavigateToCalendar = onNavigateToCalendar,
-            onNavigateToQibla = onNavigateToQibla,
-            onNavigateToAllahNames = onNavigateToAllahNames,
-            onNavigateToRamadan = onNavigateToRamadan,
-            onNavigateToDuroodReminder = onNavigateToDuroodReminder,
-            onNavigateToDua = onNavigateToDua,
-            onNavigateToHadith = onNavigateToHadith,
-            onNavigateToWidgets = onNavigateToWidgets,
-            onNavigateToIslamicNames = onNavigateToIslamicNames
+        // Al Quran
+        ToolCard(
+            title = if (isEng) "Al Quran" else "আল কুরআন",
+            subtitle = if (isEng) "Read, listen, and bookmark Quranic verses" else "কুরআন পড়ুন, অনুবাদ ও অডিও শুনুন",
+            icon = Icons.Outlined.MenuBook,
+            iconColor = PrimaryGreen,
+            onClick = onNavigateToQuran
         )
+
+        // Hadith
+        ToolCard(
+            title = if (isEng) "Hadith" else "হাদিস",
+            subtitle = if (isEng) "Read Sahih Al-Bukhari and other Hadith collections" else "সহীহ হাদিস ও নির্ভরযোগ্য ইসলামিক বাণী সমূহ",
+            icon = Icons.Outlined.LibraryBooks,
+            iconColor = Color(0xFF3B82F6),
+            onClick = onNavigateToHadith
+        )
+
+        // Tasbih
+        ToolCard(
+            title = if (isEng) "Tasbih" else "তাসবিহ",
+            subtitle = if (isEng) "Dhikr counter and historic counts tracker" else "ডিজিটাল তাসবিহ গননা ও জিকির ট্র্যাকার",
+            icon = Icons.Outlined.Album,
+            iconColor = Color(0xFF8B5CF6),
+            onClick = onNavigateToTasbih
+        )
+
+        // Qibla
+        ToolCard(
+            title = if (isEng) "Qibla" else "কিবলা",
+            subtitle = if (isEng) "Find the Kaaba direction anywhere in the world" else "সটীক কিবলা দিক-নির্দেশক কম্পাস",
+            icon = Icons.Outlined.Explore,
+            iconColor = PrimaryGreen,
+            onClick = onNavigateToQibla
+        )
+
+        // Dua
+        ToolCard(
+            title = if (isEng) "Dua" else "দোয়া",
+            subtitle = if (isEng) "Browse categorized duas from Hisnul Muslim" else "দৈনন্দিন দোয়া ও জিকিরের ভাণ্ডার",
+            icon = Icons.Outlined.WavingHand,
+            iconColor = Color(0xFFEC4899),
+            onClick = onNavigateToDua
+        )
+
+        // Allah's Names
+        ToolCard(
+            title = if (isEng) "Allah's Names" else "আল্লাহর নাম",
+            subtitle = if (isEng) "99 Names of Allah with meaning and audio" else "অর্থ ও ফজিলতসহ আল্লাহর ৯৯টি পবিত্র নাম",
+            icon = Icons.Outlined.Star,
+            iconColor = Color(0xFFF59E0B),
+            onClick = onNavigateToAllahNames
+        )
+
+        // Zakat
+        ToolCard(
+            title = if (isEng) "Zakat" else "যাকাত",
+            subtitle = if (isEng) "Calculate your zakat obligation easily" else "সহজে নিজের যাকাত হিসাব করুন",
+            icon = Icons.Outlined.MonetizationOn,
+            iconColor = PrimaryGreen,
+            onClick = onNavigateToZakat
+        )
+
+        // Calendar
+        ToolCard(
+            title = if (isEng) "Calendar" else "ক্যালেন্ডার",
+            subtitle = if (isEng) "Islamic Hijri calendar and special event dates" else "হিজরি ক্যালেন্ডার ও গুরুত্বপূর্ণ ইসলামিক দিনসমূহ",
+            icon = Icons.Outlined.CalendarMonth,
+            iconColor = Color(0xFF6366F1),
+            onClick = onNavigateToCalendar
+        )
+
+        // Ramadan
+        ToolCard(
+            title = if (isEng) "Ramadan" else "রমজান",
+            subtitle = if (isEng) "Sehri, Iftar times and Ramadan calendar" else "সেহরি ও ইফতারের সঠিক সময়সূচী ও আমল",
+            icon = Icons.Outlined.ModeNight,
+            iconColor = Color(0xFF6366F1),
+            onClick = onNavigateToRamadan
+        )
+
+        // Islamic Name
+        ToolCard(
+            title = if (isEng) "Islamic Name" else "ইসলামিক নাম",
+            subtitle = if (isEng) "Find beautiful names with Islamic meanings" else "অর্থসহ সুন্দর ও অর্থবহ ইসলামিক নামসমূহ",
+            icon = Icons.Outlined.People,
+            iconColor = Color(0xFF3B82F6),
+            onClick = onNavigateToIslamicNames
+        )
+
+        // Durood Reminder
+        ToolCard(
+            title = if (isEng) "Durood Reminder" else "দরুদ রিমাইন্ডার",
+            subtitle = if (isEng) "Automated reminders to send blessings upon the Prophet" else "নবীজির প্রতি দরুদ শরীফ পড়ার রিমাইন্ডার",
+            icon = Icons.Outlined.Notifications,
+            iconColor = Color(0xFF8B5CF6),
+            onClick = onNavigateToDuroodReminder
+        )
+
+        // Widgets
+        ToolCard(
+            title = if (isEng) "Widgets" else "উইজেট",
+            subtitle = if (isEng) "Beautiful prayer widgets for your home screen" else "হোম স্ক্রিনের জন্য আকর্ষণীয় নামাজ উইজেট",
+            icon = Icons.Outlined.Widgets,
+            iconColor = Color(0xFF10B982),
+            onClick = onNavigateToWidgets
+        )
+
+        // Daily Tracker
+        ToolCard(
+            title = if (isEng) "Daily Tracker" else "দৈনিক ট্র্যাকার",
+            subtitle = if (isEng) "Track your daily prayers, fasts, and good deeds" else "দৈনিক নামাজ, রোজা ও নেক আমল ট্র্যাকার",
+            icon = Icons.Outlined.CheckCircle,
+            iconColor = Color(0xFF10B982),
+            onClick = onNavigateToTracker
+        )
+
+        // ----------------- 5 NEW PREMIUM ISLAMIC TOOLS -----------------
+
+        // Daily Sunnah Acts
+        ToolCard(
+            title = if (isEng) "Daily Sunnah Acts" else "দৈনিক সুন্নাহসমূহ",
+            subtitle = if (isEng) "Track daily Sunnah habits to earn extra rewards" else "দৈনন্দিন সুন্নাহসমূহ জানুন ও আমল ট্র্যাকিং করুন",
+            icon = Icons.Outlined.CheckCircle,
+            iconColor = Color(0xFF10B982),
+            onClick = onNavigateToDailySunnah
+        )
+
+        // Morning-Evening Azkar
+        ToolCard(
+            title = if (isEng) "Morning-Evening Azkar" else "সকাল-সন্ধ্যার জিকির",
+            subtitle = if (isEng) "Recite morning & evening prayers with dynamic counter" else "হিসনুল মুসলিম থেকে সকাল-সন্ধ্যার সুরক্ষাকারী জিকিরসমূহ",
+            icon = Icons.Outlined.ModeNight,
+            iconColor = Color(0xFFF59E0B),
+            onClick = onNavigateToMorningEveningAzkar
+        )
+
+        // Islamic Quiz
+        ToolCard(
+            title = if (isEng) "Islamic Quiz" else "ইসলামিক কুইজ",
+            subtitle = if (isEng) "Test and increase your knowledge with fun quizzes" else "কুইজ খেলে ইসলামিক সাধারণ জ্ঞান বৃদ্ধি করুন",
+            icon = Icons.Outlined.School,
+            iconColor = Color(0xFFEC4899),
+            onClick = onNavigateToIslamicQuiz
+        )
+
+        // Islamic Masa'il / Q&A
+        ToolCard(
+            title = if (isEng) "Islamic Masa'il" else "ইসলামিক মাসয়ালা-মাসায়েল",
+            subtitle = if (isEng) "Search and read common Islamic fatwas and rules" else "দৈনন্দিন জীবনের প্রয়োজনীয় মাসয়ালা ও সমাধান",
+            icon = Icons.Outlined.LibraryBooks,
+            iconColor = Color(0xFF3B82F6),
+            onClick = onNavigateToIslamicMasail
+        )
+
+        // Sadaqah Planner
+        ToolCard(
+            title = if (isEng) "Sadaqah Planner" else "সাদাকাহ প্ল্যানার",
+            subtitle = if (isEng) "Set charity goals, log donations, and track contributions" else "দানের পরিকল্পনা করুন এবং নিজের সাদাকাহ ট্র্যাক করুন",
+            icon = Icons.Outlined.MonetizationOn,
+            iconColor = Color(0xFF8B5CF6),
+            onClick = onNavigateToSadaqahPlanner
+        )
+
+        // ----------------- COMING SOON ORIGINAL TOOLS -----------------
+
+        // Amal Learning
+        ToolCard(
+            title = if (isEng) "Amal Learning" else "আমল শিক্ষা",
+            subtitle = if (isEng) "Learn correct Islamic deeds and practices (Coming Soon)" else "সঠিক ইসলামিক আমল ও মাসয়ালা শিক্ষা (শীঘ্রই আসছে)",
+            icon = Icons.Outlined.School,
+            iconColor = Color(0xFF8B5CF6),
+            onClick = onNavigateToComingSoon
+        )
+
+        // Salah Learning
+        ToolCard(
+            title = if (isEng) "Salah Learning" else "নামাজ শিক্ষা",
+            subtitle = if (isEng) "Step-by-step guide to pray correctly (Coming Soon)" else "নিয়ম ও দোয়াসহ নামাজ শেখার সহজ উপায় (শীঘ্রই আসছে)",
+            icon = Icons.Outlined.SelfImprovement,
+            iconColor = Color(0xFF14B8A6),
+            onClick = onNavigateToComingSoon
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Composable
+fun ToolCard(
+    title: String,
+    subtitle: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    iconColor: Color,
+    onClick: () -> Unit
+) {
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 6.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable {
+                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                onClick()
+            },
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = CardBg),
+        border = BorderStroke(1.dp, if (isDarkModeGlobal) Color(0xFF334155) else Color(0xFFE2E8F0)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(iconColor.copy(alpha = 0.12f), RoundedCornerShape(8.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = title,
+                    tint = iconColor,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(14.dp))
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = title,
+                    fontWeight = FontWeight.Bold,
+                    color = TextDark,
+                    fontSize = 14.sp
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = subtitle,
+                    color = TextGray,
+                    fontSize = 11.sp,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowRight,
+                contentDescription = null,
+                tint = TextGray.copy(alpha = 0.5f),
+                modifier = Modifier.size(20.dp)
+            )
+        }
     }
 }
 
