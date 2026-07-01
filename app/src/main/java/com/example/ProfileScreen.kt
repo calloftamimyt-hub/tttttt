@@ -427,8 +427,45 @@ fun ProfileScreen(
                                 fontWeight = FontWeight.Bold,
                                 textAlign = TextAlign.Center,
                                 color = TextDark,
-                                modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp)
+                                modifier = Modifier.padding(horizontal = 16.dp)
                             )
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            // Fetch active location name from prayer_alarm_prefs or shared_prefs
+                            val alarmPrefs = remember { context.getSharedPreferences("prayer_alarm_prefs", Context.MODE_PRIVATE) }
+                            val isAuto = alarmPrefs.getBoolean("is_auto_location", true)
+                            val currentLocationName = remember(isAuto, locationSetting) {
+                                if (isAuto) {
+                                    alarmPrefs.getString("saved_district", if (isEn) "My Location" else "আমার অবস্থান") ?: (if (isEn) "My Location" else "আমার অবস্থান")
+                                } else {
+                                    if (locationSetting.isNotEmpty()) locationSetting else (if (isEn) "Dhaka" else "ঢাকা")
+                                }
+                            }
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier
+                                    .padding(bottom = 12.dp)
+                                    .background(PrimaryGreen.copy(alpha = 0.08f), RoundedCornerShape(12.dp))
+                                    .border(1.dp, PrimaryGreen.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                                    .padding(horizontal = 10.dp, vertical = 5.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.LocationOn,
+                                    contentDescription = "Location",
+                                    tint = PrimaryGreen,
+                                    modifier = Modifier.size(13.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = currentLocationName,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = PrimaryGreen,
+                                    fontSize = 11.5.sp
+                                )
+                            }
                         } else {
                             // When not logged in: show the application name "Halal Circle"
                             Text(

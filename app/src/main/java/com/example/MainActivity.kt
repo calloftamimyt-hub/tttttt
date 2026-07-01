@@ -557,7 +557,7 @@ class MainActivity : ComponentActivity() {
                                             onNavigateToHadith = { selectedTab = "hadith" },
                                             onOpenNotificationsPage = { isNotificationsPageOpen = true },
                                             onOpenFoundationPage = { isFoundationPageOpen = true },
-                                            onRefreshLocation = { viewModel.forceRefreshLocation(context) }
+                                            onRefreshLocation = { if (multiplePermissionsState.allPermissionsGranted) viewModel.forceRefreshLocation(context) else multiplePermissionsState.launchMultiplePermissionRequest() }
                                         )
                                     } else if (selectedTab == "location") {
                                         LocationSelectionScreen(
@@ -1112,14 +1112,36 @@ fun HomeScreen(
             Column(
                 modifier = Modifier.padding(top = 8.dp)
             ) {
+                val profilePrefs = remember { context.getSharedPreferences("profile_prefs", Context.MODE_PRIVATE) }
+                val isEng = com.example.viewmodel.GlobalLanguage.isEnglish
+                var userName by remember {
+                    mutableStateOf(profilePrefs.getString("user_name", "") ?: "")
+                }
+
+                DisposableEffect(profilePrefs) {
+                    val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
+                        if (key == "user_name") {
+                            userName = prefs.getString("user_name", "") ?: ""
+                        }
+                    }
+                    profilePrefs.registerOnSharedPreferenceChangeListener(listener)
+                    onDispose {
+                        profilePrefs.unregisterOnSharedPreferenceChangeListener(listener)
+                    }
+                }
+
+                val displayName = if (userName.isNotEmpty()) userName else (if (isEng) "Guest User" else "অতিথি ইউজার")
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Halal Circle",
+                        text = displayName,
                         fontWeight = FontWeight.ExtraBold,
-                        fontSize = 20.sp,
-                        color = PrimaryGreen
+                        fontSize = 18.sp,
+                        color = TextDark,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                     )
                 }
                 
@@ -1154,6 +1176,23 @@ fun HomeScreen(
                             contentDescription = "Expand Location",
                             tint = PrimaryGreen,
                             modifier = Modifier.size(13.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    IconButton(
+                        onClick = onRefreshLocation,
+                        modifier = Modifier
+                            .size(28.dp)
+                            .background(PrimaryGreen.copy(alpha = 0.08f), CircleShape)
+                            .border(1.dp, PrimaryGreen.copy(alpha = 0.2f), CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MyLocation,
+                            contentDescription = "Auto Detect Location",
+                            tint = PrimaryGreen,
+                            modifier = Modifier.size(14.dp)
                         )
                     }
                 }
