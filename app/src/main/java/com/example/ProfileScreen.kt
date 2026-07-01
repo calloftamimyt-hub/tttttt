@@ -1841,13 +1841,13 @@ fun ProfileOptionItem(
             Box(
                 modifier = Modifier
                     .size(36.dp)
-                    .background(color = iconColor.copy(alpha = 0.12f), shape = RoundedCornerShape(10.dp)),
+                    .background(color = iconColor, shape = RoundedCornerShape(10.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = iconColor,
+                    tint = Color.White,
                     modifier = Modifier.size(19.dp)
                 )
             }
