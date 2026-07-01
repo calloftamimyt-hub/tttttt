@@ -154,12 +154,12 @@ fun SalatTimesCard(state: ViewState) {
                                                 color = if (isActive) primaryGreen else Color(0xFF1E293B)
                                             )
                                             
-                                            if (isActive && prayer.countdown.isNotEmpty()) {
+                                            if (prayer.countdown.isNotEmpty()) {
                                                 Text(
-                                                    text = if (isEng) "Remaining: ${prayer.countdown}" else "বাকি: ${prayer.countdown.toBengali()}",
+                                                    text = prayer.countdown,
                                                     fontSize = 11.sp,
                                                     fontWeight = FontWeight.Medium,
-                                                    color = primaryGreen
+                                                    color = if (isActive) primaryGreen else Color(0xFF64748B)
                                                 )
                                             }
                                         }
