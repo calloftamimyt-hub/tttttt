@@ -97,115 +97,100 @@ fun SalatTimesCard(state: ViewState) {
                     
                     Spacer(modifier = Modifier.height(16.dp))
                     
-                    // 16:9 Compact Layout Content
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                    // Vertical list of 5 Prayers (Clean & Premium Full Width Layout)
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // Left: 5 Prayers (Slim Layout)
-                        Column(
-                            modifier = Modifier.weight(1.1f),
-                            verticalArrangement = Arrangement.spacedBy(10.dp) // tighter spacing
-                        ) {
-                            prayers.forEach { prayer ->
-                                val isActive = prayer.internalName == state.currentPrayerName
+                        prayers.forEach { prayer ->
+                            val isActive = prayer.internalName == state.currentPrayerName
+                            val rowBg = if (isActive) Color(0xFFECFDF5) else Color.Transparent
+                            val rowModifier = if (isActive) {
+                                Modifier
+                                    .fillMaxWidth()
+                                    .border(width = 1.dp, color = primaryGreen.copy(alpha = 0.4f), shape = RoundedCornerShape(10.dp))
+                            } else {
+                                Modifier.fillMaxWidth()
+                            }
+                            
+                            Card(
+                                shape = RoundedCornerShape(10.dp),
+                                colors = CardDefaults.cardColors(containerColor = rowBg),
+                                modifier = rowModifier
+                            ) {
                                 Row(
-                                    modifier = Modifier.fillMaxWidth().padding(end = 12.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 12.dp, vertical = 10.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(
-                                        text = prayer.name,
-                                        fontSize = 14.sp,
-                                        fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.Medium,
-                                        color = if (isActive) primaryGreen else Color(0xFF475569)
-                                    )
-                                    Text(
-                                        text = formatTime(prayer.timeHours),
-                                        fontSize = 14.sp,
-                                        fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.SemiBold,
-                                        color = if (isActive) primaryGreen else Color(0xFF1E293B)
-                                    )
-                                }
-                            }
-                        }
-                        
-                        // Divider
-                        Box(
-                            modifier = Modifier
-                                .width(1.dp)
-                                .height(120.dp)
-                                .background(Color(0xFFF1F5F9))
-                        )
-                        
-                        // Right: Iftar & Countdown
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(start = 12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = if (isEng) "Iftar" else "ইফতার",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = Color(0xFF1E293B)
-                            )
-                            
-                            Spacer(modifier = Modifier.height(12.dp))
-                            
-                            // Circle + Icon alignment
-                            Box(
-                                modifier = Modifier.offset(y = (-4).dp),
-                                contentAlignment = Alignment.CenterEnd
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    // Countdown Circle
-                                    Box(
-                                        modifier = Modifier
-                                            .size(80.dp)
-                                            .clip(CircleShape)
-                                            .border(3.dp, primaryGreen, CircleShape)
-                                            .background(Color.White),
-                                        contentAlignment = Alignment.Center
+                                    // Left: Icon + Name + Countdown
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                                     ) {
-                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .background(
+                                                    if (isActive) primaryGreen else Color(0xFFF1F5F9),
+                                                    CircleShape
+                                                ),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = prayer.icon,
+                                                contentDescription = null,
+                                                tint = if (isActive) Color.White else Color(0xFF64748B),
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                        
+                                        Column {
                                             Text(
-                                                text = state.maghribCountdown.ifEmpty { "00:00:00" },
+                                                text = prayer.name,
                                                 fontSize = 14.sp,
-                                                fontWeight = FontWeight.ExtraBold,
-                                                color = primaryGreen
+                                                fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.Bold,
+                                                color = if (isActive) primaryGreen else Color(0xFF1E293B)
                                             )
-                                            Text(
-                                                text = if (isEng) "remaining" else "বাকি",
-                                                fontSize = 10.sp,
-                                                color = Color(0xFF64748B),
-                                                modifier = Modifier.offset(y = (-2).dp)
-                                            )
+                                            
+                                            if (isActive && prayer.countdown.isNotEmpty()) {
+                                                Text(
+                                                    text = if (isEng) "Remaining: ${prayer.countdown}" else "বাকি: ${prayer.countdown.toBengali()}",
+                                                    fontSize = 11.sp,
+                                                    fontWeight = FontWeight.Medium,
+                                                    color = primaryGreen
+                                                )
+                                            }
                                         }
                                     }
                                     
-                                    // Sunset Icon positioned on the right middle
-                                    Icon(
-                                        imageVector = Icons.Outlined.WbTwilight,
-                                        contentDescription = "Sunset",
-                                        tint = Color(0xFFF97316),
-                                        modifier = Modifier
-                                            .padding(start = 8.dp)
-                                            .size(24.dp)
-                                    )
+                                    // Right: Time + Active Pill Badge
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        if (isActive) {
+                                            Text(
+                                                text = if (isEng) "Active" else "চলতি",
+                                                color = Color.White,
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier
+                                                    .background(primaryGreen, RoundedCornerShape(4.dp))
+                                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                                            )
+                                        }
+                                        
+                                        Text(
+                                            text = formatTime(prayer.timeHours),
+                                            fontSize = 14.sp,
+                                            fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.SemiBold,
+                                            color = if (isActive) primaryGreen else Color(0xFF1E293B)
+                                        )
+                                    }
                                 }
                             }
-                            
-                            Spacer(modifier = Modifier.height(8.dp))
-                            
-                            Text(
-                                text = formatTime(times.maghribHours),
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF0F172A)
-                            )
                         }
                     }
                 }

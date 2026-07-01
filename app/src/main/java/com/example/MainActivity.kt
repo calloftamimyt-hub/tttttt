@@ -985,7 +985,7 @@ fun UnifiedHeroCard(state: com.example.viewmodel.ViewState, onNavigateToPrayerDe
             
             // Labels for Sunrise and Sunset at bottom
             Row(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().padding(bottom = 24.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Bottom
             ) {
@@ -1387,7 +1387,7 @@ fun SubInfoItem(title: String, time: String) {
     Column(horizontalAlignment = Alignment.Start) {
         Text(title, color = TextGray, fontSize = 11.sp, fontWeight=FontWeight.Medium)
         Spacer(modifier=Modifier.height(2.dp))
-        Text(time, color = Color.Black, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        Text(time, color = Color.Black, fontSize = 20.sp, fontWeight = FontWeight.Bold)
     }
 }
 
